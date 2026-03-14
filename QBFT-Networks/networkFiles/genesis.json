@@ -1,0 +1,21 @@
+{
+  "config": {
+    "chainId": 1337,
+    "berlinBlock": 0,
+    "londonBlock": 0,
+    "shanghaiTime": 0,
+    "qbft": {
+      "blockperiodseconds": 2,
+      "epochlength": 30000,
+      "requesttimeoutseconds": 4
+    }
+  },
+  "alloc": {
+    "0xdFF038f8bD5F2b621985806838B9c8242aeb13e8": {
+      "balance": "0x3635C9ADC5DEA00000"
+    }
+  },
+  "gasLimit": "0x1fffffffffffff",
+  "difficulty": "0x1",
+  "extraData": "0xf83aa00000000000000000000000000000000000000000000000000000000000000000d594aa03c6506d0e8cf54e35fa4b5059a45c79d8bfe6c080c0"
+}

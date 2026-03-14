@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  besu-node-1:
+    image: hyperledger/besu:latest
+    container_name: besu-node-1
+    volumes:
+      - ./networkFiles/genesis.json:/opt/besu/genesis.json
+      - ./Node-1/data:/opt/besu/data
+      - ./networkFiles/keys/0xaa03c6506d0e8cf54e35fa4b5059a45c79d8bfe6/key:/opt/besu/key
+    ports:
+      - "8545:8545"
+      - "30303:30303"
+      - "9545:9545" #metrics
+    command:
+      - --data-path=/opt/besu/data
+      - --genesis-file=/opt/besu/genesis.json
+      - --node-private-key-file=/opt/besu/key
+      - --sync-min-peers=0
+      - --min-gas-price=0
+      - --rpc-http-enabled
+      - --rpc-http-api=ETH,NET,QBFT,WEB3
+      - --rpc-http-cors-origins=*
+      - --host-allowlist=*
+      - --p2p-port=30303
+
+      #metric
+      - --metrics-enabled
+      - --metrics-host=0.0.0.0
+      - --metrics-port=9545
+
+  #prometheus for scraping besu data
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - besu-node-1
+
+  # grafana for monitoring
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus

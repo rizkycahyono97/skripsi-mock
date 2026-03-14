@@ -1,0 +1,29 @@
+# Private keys
+networkFiles/keys/
+Node-*/data/key
+
+# Blockchain database
+Node-*/data/database/
+Node-*/data/caches/
+Node-*/data/*.json
+Node-*/data/*.log
+Node-*/data/LOCK
+
+# Generated ports & runtime files
+Node-*/data/besu.ports
+Node-*/data/besu.networks
+
+# Docker override files
+*.env
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Backup files
+*.bak
+*.swp
