@@ -6,15 +6,14 @@ use App\Models\Document;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Pest\Support\Str;
-
+use Illuminate\Support\Str;
 use function Symfony\Component\Clock\now;
 
 class DocumentController extends Controller
 {
     public function index() {
         $documents = Document::with('student')->latest()->get();
-       return view('documents.index', compact($documents));
+       return view('documents.index', compact('documents'));
     }
 
     public function store(Request $request) {
@@ -26,7 +25,6 @@ class DocumentController extends Controller
         ]);
 
         $nomor_surat = 'DOC-' . strtoupper(Str::random(4)) . '-' . rand(100, 999);
-
         while (Document::where('nomor_surat', $nomor_surat)->exists()) {
             $nomor_surat = 'DOC-' . strtoupper(Str::random(4)) . '-' . rand(100, 999);
         }
@@ -44,7 +42,7 @@ class DocumentController extends Controller
     public function setujui($id) {
         $document = Document::with('student')->findOrFail($id);
 
-        $documentHash = $this->generateHash($id);
+        $documentHash = $this->generateHash($document);
 
         if ($document->status !== 'pending') {
             return redirect()->back()->with('error', 'Dokumen tidak dalam status siap tanda tangan.');
@@ -76,9 +74,7 @@ class DocumentController extends Controller
         }
     }
 
-    private function generateHash($id) {
-        $document = Document::with('student')->findOrFail($id);
-
+    private function generateHash($document) {
         $dataToHash = [
             'nomor_surat' => $document->nomor_surat,
             'perihal'     => $document->perihal,
@@ -87,10 +83,6 @@ class DocumentController extends Controller
             'mhs_nim'     => $document->student->nim,
         ];
 
-        $stringData = json_encode($dataToHash);
-
-        $documentHash = hash('sha256', $stringData);
-
-        return $documentHash;
+        return hash('256', json_encode($dataToHash));
     }
 }
