@@ -46,14 +46,6 @@ class DocumentController extends Controller
 
         $documentHash = $this->generateHash($id);
 
-        $dataToHash = [
-            'nomor_surat' => $document->nomor_surat,
-            'perihal' => $document->perihal,
-            'tanggal' => $document->tanggal_surat,
-            'mhs_name' => $document->student->name,
-            'mhs_nim' => $document->student->nim,
-        ];
-
         if ($document->status !== 'pending') {
             return redirect()->back()->with('error', 'Dokumen tidak dalam status siap tanda tangan.');
         }
