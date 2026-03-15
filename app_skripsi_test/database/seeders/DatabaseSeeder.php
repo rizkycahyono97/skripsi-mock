@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Student;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -19,6 +20,14 @@ class DatabaseSeeder extends Seeder
             'name' => 'test',
             'email' => 'test@example.com',
             'password' => 'test'
+        ]);
+
+        Student::create([
+            'nim' => '442023611012',
+            'name' => 'Rizky Cahyono Putra',
+            'prodi' => 'Teknik Informatika',
+            'faculty' => 'Saintek',
+            'email' => 'rizkycahyonoputra80@student.cs.unida.gontor.ac.id',
         ]);
     }
 }

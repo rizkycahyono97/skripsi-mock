@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Document extends Model
 {
+
+
     protected $fillable = [
-        'nim_student',
+        'student_id',
         'nomor_surat',
         'perihal',
         'tanggal_surat',
@@ -25,6 +27,6 @@ class Document extends Model
     ];
 
     public function student(): BelongsTo {
-        return $this->belongsTo(Student::class, 'nim_student', 'nim');
+        return $this->belongsTo(Student::class, 'student_id', 'id');
     }
 }

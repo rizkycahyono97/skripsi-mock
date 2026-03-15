@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('document', function (Blueprint $table) {
+        Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->string('nim_student', 20);
+            $table->foreignId('student_id')->constrained('students', 'id')->onDelete('cascade');
             $table->string('nomor_surat');
             $table->string('perihal');
             $table->string('tanggal_surat');
@@ -27,7 +27,6 @@ return new class extends Migration
             $table->timestamp('issued_at')->nullable();
             $table->timestamps();
 
-            $table->foreign('nim_student')->references('nim')->on('student')->onDelete('cascade');
         });
     }
 
@@ -36,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('document');
+        Schema::dropIfExists('documents');
     }
 };

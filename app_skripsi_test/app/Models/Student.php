@@ -20,6 +20,6 @@ class Student extends Model
     ];
 
     public function documents(): HasMany {
-        return $this->hasMany(Document::class, 'nim_student', 'nim');
+        return $this->hasMany(Document::class, 'student_id', 'id');
     }
 }
