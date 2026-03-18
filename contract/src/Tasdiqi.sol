@@ -78,4 +78,8 @@ contract Tasdiqi is EIP712, Ownable {
     function checkDocument(bytes32 _docHash) external view returns (bool) {
         return verifiedDocuments[_docHash];
     }
+
+    function getDomainSeparator() public view returns (bytes32) {
+        return _domainSeparatorV4();
+    }
 }
