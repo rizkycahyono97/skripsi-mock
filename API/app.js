@@ -1,8 +1,12 @@
-require('dotenv').config();
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { ethers } from 'ethers';
-import tasdiqiAbi from './TasdiqiABI.json';
+import fs from 'fs';
+
+const tasdiqiAbi = JSON.parse(
+  fs.readFileSync('./TasdiqiABI.json', 'utf-8')
+).abi;
 
 const app = express();
 app.use(cors());
