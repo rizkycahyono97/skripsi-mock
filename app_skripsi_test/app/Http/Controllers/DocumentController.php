@@ -73,7 +73,7 @@ class DocumentController extends Controller
                 'document_hash' => $documentHash,
             ]);
 
-            dd($response);
+            // dd($response);
 
             if ($response->successful()) {
                 $result = $response->json();
