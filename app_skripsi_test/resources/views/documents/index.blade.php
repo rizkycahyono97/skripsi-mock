@@ -153,7 +153,8 @@
                                                 <td class="px-6 py-4 text-right">
 
                                                     @if ($doc->status == 'pending')
-                                                        <form action="{{ route('documents.setujui', $doc->id) }}"
+                                                        <form id="setujui-{{ $doc->id }}"
+                                                            action="{{ route('documents.setujui', $doc->id) }}"
                                                             method="POST">
                                                             @csrf
 
@@ -161,7 +162,6 @@
                                                                 class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-semibold">
                                                                 Setujui & Sign
                                                             </button>
-
                                                         </form>
                                                     @else
                                                         <button
@@ -196,3 +196,11 @@
         </div>
     </div>
 </x-layouts::app>
+
+<script>
+    document.querySelectorAll('form').forEach(f => {
+        f.addEventListener('submit', e => {
+            console.log('FORM SUBMIT:', f.action, f.method);
+        });
+    });
+</script>

@@ -53,9 +53,12 @@ class DocumentController extends Controller
 
     public function setujui($id)
     {
+        // dd(request()->method(), request()->fullUrl());
         $document = Document::with('student')->findOrFail($id);
 
         $documentHash = $this->generateHash($document);
+
+        // dd($documentHash);
 
         if ($document->status !== 'pending') {
             return redirect()->back()->with('error', 'Dokumen tidak dalam status siap tanda tangan.');
@@ -63,18 +66,21 @@ class DocumentController extends Controller
 
         try {
             $response = Http::timeout(30)->post('http://localhost:8001/api/sign-document', [
-                'document_id' => $document->id,
+                // 'document_id' => $document->id,
                 'nomor_surat' => $document->nomor_surat,
-                'nim' => $document->nim,
-                'name' => $document->student->name,
+                'nim' => $document->student->nim,
+                // 'name' => $document->student->name,
                 'document_hash' => $documentHash,
             ]);
+
+            dd($response);
 
             if ($response->successful()) {
                 $result = $response->json();
 
                 $document->update([
-                    'document_tx_hash' => $result['tx_hash'],
+                    'blockchain_tx_hash' => $result['tx_hash'],
+                    'document_hash' => $documentHash,
                     'signer_address' => $result['signer'],
                     'status' => 'signed',
                     'issued_at' => now(),
@@ -83,7 +89,7 @@ class DocumentController extends Controller
                 return redirect()->route('documents.index')->with('success', 'Dokumen Berhasil Ditandatangani secara Digital di Blockchain!');
             }
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Koneksi ke Tasdiqi BE terputus: '.$e->getMessage());
+            return redirect()->route('documents.index')->with('error', 'Koneksi ke Tasdiqi BE terputus: '.$e->getMessage());
         }
     }
 
@@ -97,6 +103,6 @@ class DocumentController extends Controller
             'mhs_nim' => $document->student->nim,
         ];
 
-        return hash('256', json_encode($dataToHash));
+        return hash('sha256', json_encode($dataToHash));
     }
 }

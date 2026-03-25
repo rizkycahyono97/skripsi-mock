@@ -11,7 +11,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // document
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
-    Route::post('/documents/{id}/setujui', [DocumentController::class, 'setujui'])->name('documents.setujui');
+    Route::post('/documents/{id}/setujui', [DocumentController::class, 'setujui'])
+    ->name('documents.setujui');
+    // Route::match(['get', 'post'], '/documents/{id}/setujui',  [DocumentController::class, 'setujui'])->name('documents.setujui');
 });
 
 require __DIR__.'/settings.php';

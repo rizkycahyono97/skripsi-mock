@@ -21,7 +21,7 @@ class Document extends Model
         'issued_at'
     ];
 
-    protected $cast = [
+    protected $casts = [
         'tanggal_surat' => 'date',
         'issued_at' => 'datetime'
     ];

@@ -12,7 +12,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+const provider = new ethers.JsonRpcProvider(
+  process.env.RPC_URL,
+  {
+    chainId: parseInt(process.env.CHAIN_ID),
+    name: 'besu'
+  },
+  { staticNetwork: true }
+);
 const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 const tasdiqiContract = new ethers.Contract(
@@ -38,12 +45,20 @@ const types = {
   ]
 };
 
+app.get('/healthy', (req, res) => {
+  res.send('API Tasdiqi is running');
+});
+
 app.post('/api/sign-document', async (req, res) => {
   try {
-    const { nomor_surat, nim, document_hash } = req.body;
+    let { nomor_surat, nim, document_hash } = req.body;
 
     if (!nomor_surat || !nim || !document_hash) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (document_hash && !document_hash.startsWith('0x')) {
+      document_hash = '0x' + document_hash;
     }
 
     const value = {
@@ -57,9 +72,15 @@ app.post('/api/sign-document', async (req, res) => {
     console.log('Signature berhasil dibuat:: ', signature);
 
     // kirim ke contract
-    const tx = await tasdiqiAbi.issueDocument(value, signature);
+    const tx = await tasdiqiContract.issueDocument(value, signature);
+    console.log('value: ', value);
+    console.log('Signature: ', signature);
     console.log('Menunggu transaksi selesai....');
-    const receipt = await tx.await();
+    const receipt = await tx.wait(1);
+
+    if (receipt) {
+      console.log(`Transaksi sukses di blok: ${receipt.blockNumber}`);
+    }
 
     //response
     return res.json({
@@ -76,4 +97,10 @@ app.post('/api/sign-document', async (req, res) => {
       error: e.message
     });
   }
+});
+
+const PORT = process.env.PORT || 8001;
+app.listen(PORT, () => {
+  console.log(` API Tasdiqi berjalan di http://localhost:${PORT}`);
+  console.log(` Terhubung ke RPC: ${process.env.RPC_URL}`);
 });
