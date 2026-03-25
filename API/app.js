@@ -30,9 +30,9 @@ const tasdiqiContract = new ethers.Contract(
 
 // domain EIP-712
 const domain = {
-  name: 'Tasdiqi',
+  name: 'Tasdiqi-UNIDA',
   version: '1',
-  chainId: process.env.CHAIN_ID,
+  chainId: parseInt(process.env.CHAIN_ID),
   verifyingContract: process.env.CONTRACT_ADDRESS
 };
 
