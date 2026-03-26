@@ -57,7 +57,7 @@ contract Tasdiqi is EIP712, Ownable {
         // gabung domain separator + stuctHash
         bytes32 hash = _hashTypedDataV4(structHash);
 
-        // signature => signer
+        // recover signature dari API
         address signer = hash.recover(signature);
 
         require(

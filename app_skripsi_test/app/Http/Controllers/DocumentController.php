@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Biro;
 use App\Models\Document;
 use App\Models\Student;
 use Exception;
@@ -16,8 +17,9 @@ class DocumentController extends Controller
     public function index()
     {
         $documents = Document::with('student')->latest()->get();
+        $biros = Biro::all();
 
-        return view('documents.index', compact('documents'));
+        return view('documents.index', compact('documents', 'biros'));
     }
 
     public function store(Request $request)
@@ -27,10 +29,12 @@ class DocumentController extends Controller
                 'nim' => 'required|exists:students,nim',
                 'perihal' => 'required',
                 'tanggal_surat' => 'required|date',
+                'biro_id' => 'required|exists:biros,id'
             ]);
 
             $student = Student::where('nim', $validated['nim'])->firstOrFail();
 
+            // generate nomor surat
             $nomor_surat = 'DOC-'.strtoupper(Str::random(4)).'-'.rand(100, 999);
             while (Document::where('nomor_surat', $nomor_surat)->exists()) {
                 $nomor_surat = 'DOC-'.strtoupper(Str::random(4)).'-'.rand(100, 999);
@@ -38,6 +42,7 @@ class DocumentController extends Controller
 
             Document::create([
                 'student_id' => $student->id,
+                'biro_id' => $validated['biro_id'],
                 'perihal' => $validated['perihal'],
                 'tanggal_surat' => $validated['tanggal_surat'],
                 'nomor_surat' => $nomor_surat,
@@ -54,7 +59,11 @@ class DocumentController extends Controller
     public function setujui($id)
     {
         // dd(request()->method(), request()->fullUrl());
-        $document = Document::with('student')->findOrFail($id);
+        $document = Document::with(['student', 'biro'])->findOrFail($id);
+
+        if (!$document->biro->nama_biro || !$document->biro->wallet_address) {
+            return redirect()->back()->with('error', 'Biro penanda tangan tidak valid.'); 
+        }
 
         $documentHash = $this->generateHash($document);
 
@@ -71,6 +80,7 @@ class DocumentController extends Controller
                 'nim' => $document->student->nim,
                 // 'name' => $document->student->name,
                 'document_hash' => $documentHash,
+                'biro_slug' => $document->biro->slug,
             ]);
 
             // dd($response);

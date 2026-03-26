@@ -13,20 +13,22 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('students', 'id')->onDelete('cascade');
             $table->string('nomor_surat');
             $table->string('perihal');
             $table->string('tanggal_surat');
-
+            
             // blockchain fields
             $table->string('document_hash', 66)->unique()->nullable();
             $table->string('blockchain_tx_hash', 66)->unique()->nullable();
             $table->string('signer_address', 42)->nullable();
-
+            
             $table->enum('status', ['draft', 'pending', 'signed', 'revoked'])->default('draft');
             $table->timestamp('issued_at')->nullable();
             $table->timestamps();
-
+            
+            // FK
+            $table->foreignId('student_id')->constrained('students', 'id')->onDelete('cascade');
+            $table->foreignId('biro_id')->constrained('biros');
         });
     }
 

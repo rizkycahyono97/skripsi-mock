@@ -7,10 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Document extends Model
 {
-
-
     protected $fillable = [
-        'student_id',
         'nomor_surat',
         'perihal',
         'tanggal_surat',
@@ -18,7 +15,9 @@ class Document extends Model
         'blockchain_tx_hash',
         'signer_address',
         'status',
-        'issued_at'
+        'issued_at',
+        'student_id',
+        'biro_id',
     ];
 
     protected $casts = [
@@ -28,5 +27,9 @@ class Document extends Model
 
     public function student(): BelongsTo {
         return $this->belongsTo(Student::class, 'student_id', 'id');
+    }
+
+    public function biro(): BelongsTo {
+        return $this->belongsTo(Biro::class, 'biro_id', 'id');
     }
 }
