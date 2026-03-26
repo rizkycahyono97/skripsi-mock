@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { ethers } from 'ethers';
 import fs from 'fs';
+import { env } from 'process';
 
 const tasdiqiAbi = JSON.parse(
   fs.readFileSync('./TasdiqiABI.json', 'utf-8')
@@ -51,11 +52,25 @@ app.get('/healthy', (req, res) => {
 
 app.post('/api/sign-document', async (req, res) => {
   try {
-    let { nomor_surat, nim, document_hash } = req.body;
+    let { nomor_surat, nim, document_hash, biro_slug } = req.body;
 
-    if (!nomor_surat || !nim || !document_hash) {
+    if (!nomor_surat || !nim || !document_hash || !biro_slug) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+
+    const envKeyName = biro_slug.toUpperCase().replace(/-/g, '_');
+    const privateKeyBiro = process.env[envKeyName];
+
+    if (!privateKeyBiro) {
+      return res.status(400).json({
+        error: `Private key for biro '${biro_slug}' not found in environment variables`
+      });
+    }
+
+    // signer secara dinamis
+    const currentSigner = new ethers.Wallet(privateKeyBiro, provider);
+    const contractWithSigner = tasdiqiContract.connect(currentSigner);
+    console.log(`Menggunakan signer: ${biro_slug} (${currentSigner.address})`);
 
     if (document_hash && !document_hash.startsWith('0x')) {
       document_hash = '0x' + document_hash;
@@ -68,16 +83,16 @@ app.post('/api/sign-document', async (req, res) => {
     };
 
     //signing EIP-712
-    const signature = await signer.signTypedData(domain, types, value);
+    const signature = await currentSigner.signTypedData(domain, types, value);
     console.log('Signature berhasil dibuat:: ', signature);
 
     // kirim ke contract
-    const tx = await tasdiqiContract.issueDocument(value, signature);
+    const tx = await contractWithSigner.issueDocument(value, signature);
     console.log('value: ', value);
     console.log('Signature: ', signature);
     console.log('Menunggu transaksi selesai....');
-    const receipt = await tx.wait(1);
 
+    const receipt = await tx.wait(1);
     if (receipt) {
       console.log(`Transaksi sukses di blok: ${receipt.blockNumber}`);
     }

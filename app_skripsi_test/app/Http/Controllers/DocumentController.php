@@ -17,7 +17,7 @@ class DocumentController extends Controller
     public function index()
     {
         $documents = Document::with('student')->latest()->get();
-        $biros = Biro::all();
+        $biros = Biro::where('is_active', true)->get();
 
         return view('documents.index', compact('documents', 'biros'));
     }
