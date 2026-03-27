@@ -76,7 +76,7 @@ contract Tasdiqi is EIP712, Ownable {
 
     //untuk set signer ke contract
     function setSignerStatus(address _signer, bool status) external onlyOwner {
-        authorizedSigners[_signer];
+        authorizedSigners[_signer] = status; //mapping
         emit SignerStatusChanged(_signer, status);
     }
 
