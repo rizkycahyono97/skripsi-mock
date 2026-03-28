@@ -58,7 +58,7 @@
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase">NIM</label>
                                     <p class="font-semibold text-gray-900 dark:text-white">
-                                        {{ $document->student->nim_student }}</p>
+                                        {{ $document->student->nim }}</p>
                                 </div>
                             </div>
                             <hr class="dark:border-gray-700">
@@ -91,15 +91,15 @@
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label class="text-[10px] text-indigo-400 uppercase font-bold">Block
-                                            Number</label>
+                                        <label class="text-[10px] text-indigo-400 uppercase font-bold">Signer
+                                            Address</label>
                                         <p class="font-bold text-indigo-900 dark:text-indigo-200">
-                                            #{{ $document->block_number }}</p>
+                                            {{ $document->biro->nama_biro }}</p>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-indigo-400 uppercase font-bold">Gas Used</label>
                                         <p class="font-bold text-indigo-900 dark:text-indigo-200">
-                                            {{ $document->gas_used }} units</p>
+                                            {{ $document->status }}</p>
                                     </div>
                                 </div>
                                 <div>

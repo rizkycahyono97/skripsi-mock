@@ -98,7 +98,7 @@ class DocumentController extends Controller
                     'issued_at' => now(),
                 ]);
 
-                return redirect()->route('documents.index')->with('success', 'Dokumen Berhasil Ditandatangani secara Digital di Blockchain!');
+                return redirect()->route('documents.show')->with('success', 'Dokumen Berhasil Ditandatangani secara Digital di Blockchain!');
             }
         } catch (Exception $e) {
             return redirect()->route('documents.index')->with('error', 'Koneksi ke Tasdiqi BE terputus: '.$e->getMessage());
