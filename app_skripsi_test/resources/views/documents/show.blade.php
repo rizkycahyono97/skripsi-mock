@@ -77,8 +77,8 @@
                                 <h3
                                     class="font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider text-xs">
                                     Blockchain Proof of Authenticity</h3>
-                                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" class="h-4 opacity-50"
-                                    alt="ETH Logo">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6f/Ethereum-icon-purple.svg"
+                                    width="80">
                             </div>
                             <div class="p-6 space-y-4">
                                 <div>
@@ -97,7 +97,7 @@
                                             {{ $document->biro->nama_biro }}</p>
                                     </div>
                                     <div>
-                                        <label class="text-[10px] text-indigo-400 uppercase font-bold">Gas Used</label>
+                                        <label class="text-[10px] text-indigo-400 uppercase font-bold">Status</label>
                                         <p class="font-bold text-indigo-900 dark:text-indigo-200">
                                             {{ $document->status }}</p>
                                     </div>
