@@ -105,6 +105,12 @@ class DocumentController extends Controller
         }
     }
 
+    public function show($id) {
+        $document = Document::with(['biro', 'student'])->findOrFail($id);
+
+        return view('documents.show', compact('document'));
+    }
+
     private function generateHash($document)
     {
         $dataToHash = [

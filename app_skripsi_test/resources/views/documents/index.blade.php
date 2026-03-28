@@ -118,6 +118,9 @@
                                             <th
                                                 class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                 Aksi</th>
+                                            <th
+                                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider text-center">
+                                                Show</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-sm">
@@ -172,6 +175,19 @@
                                                                 LIHAT QR
                                                             </button>
                                                         </div>
+                                                    @endif
+                                                </td>
+
+                                                <td class="px-4 py-4 text-right">
+                                                    @if ($doc->status == 'signed')
+                                                        <form action="{{ route('documents.show', $doc->id) }}"
+                                                            method="GET">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                class="bg-indigo-50 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700 px-3 py-1 rounded text-xs font-bold hover:bg-indigo-600 hover:text-white transition">
+                                                                SHOW
+                                                            </button>
+                                                        </form>
                                                     @endif
                                                 </td>
                                             </tr>

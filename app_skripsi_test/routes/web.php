@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::post('/documents/{id}/setujui', [DocumentController::class, 'setujui'])
     ->name('documents.setujui');
+    Route::get('/documents/{id}', [DocumentController::class, 'show'])->name('documents.show');
     // Route::match(['get', 'post'], '/documents/{id}/setujui',  [DocumentController::class, 'setujui'])->name('documents.setujui');
 });
 
