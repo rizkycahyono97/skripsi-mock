@@ -85,14 +85,16 @@ class DocumentController extends Controller
 
             // dd($response);
 
-            if ($response->successful()) {
-                $result = $response->json();
+            if ($response->successful() && $response['success']) {
+
+                $blockchainData = $response['data'];
 
                 $document->update([
-                    'blockchain_tx_hash' => $result['tx_hash'],
-                    'document_hash' => $documentHash,
-                    'signer_address' => $result['signer'],
                     'status' => 'signed',
+                    'blockchain_tx_hash' => $blockchainData['tx_hash'], 
+                    'block_number'       => $blockchainData['block_number'],
+                    'gas_used'           => $blockchainData['gas_used'],
+                    'signer_address'     => $blockchainData['signer_address'],
                     'issued_at' => now(),
                 ]);
 

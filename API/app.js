@@ -94,22 +94,34 @@ app.post('/api/sign-document', async (req, res) => {
 
     const receipt = await tx.wait(1);
     if (receipt) {
-      console.log(`Transaksi sukses di blok: ${receipt.blockNumber}`);
+      console.log(` Transaksi Berhasil!`);
+      console.log(`   Block Number : ${receipt.blockNumber}`);
+      console.log(`   Tx Hash      : ${receipt.hash}`);
+      console.log(`   Gas Used     : ${receipt.gasUsed.toString()}`);
     }
 
     //response
     return res.json({
       success: true,
       message: 'Document berhasil ditandatangani dan disimpan di blockchain',
-      tx_hash: receipt.hash,
-      signer: signer.address
+      data: {
+        tx_hash: receipt.hash,
+        block_number: receipt.blockNumber,
+        gas_used: receipt.gasUsed.toString(),
+        from: receipt.from,
+        to: receipt.to,
+        status: receipt.status === 1 ? 'Success' : 'Failed',
+        signer_address: signer.address,
+        timestamp: new Date().toISOString()
+      }
     });
   } catch (e) {
     console.error('Error signing document:', e);
     return res.status(500).json({
       success: false,
-      message: e.reason || 'Terjadi kesalahan pada server API',
-      error: e.message
+      message: 'Gagal memproses transaksi ke Blockchain',
+      error_detail: e.reason || e.message,
+      code: e.code || 'UNKNOWN_ERROR'
     });
   }
 });
