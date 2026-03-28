@@ -167,9 +167,9 @@
                                                         </form>
                                                     @else
                                                         <div class="flex justify-end gap-2">
-                                                            <span
+                                                            {{-- <span
                                                                 class="text-[10px] text-gray-400 block mb-1 font-mono">Tx:
-                                                                {{ Str::limit($doc->blockchain_tx_hash, 10) }}</span>
+                                                                {{ Str::limit($doc->blockchain_tx_hash, 10) }}</span> --}}
                                                             <button
                                                                 class="bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-800 px-3 py-1 rounded text-xs font-bold shadow-sm">
                                                                 LIHAT QR

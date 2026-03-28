@@ -214,7 +214,7 @@ Genesis block contains no signers
 
 ---
 
-# 9. Verifikasi Validator
+# 9. Interaksi ke Blockchain
 
 Cek validator:
 
