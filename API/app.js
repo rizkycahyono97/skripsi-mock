@@ -21,6 +21,7 @@ const provider = new ethers.JsonRpcProvider(
   },
   { staticNetwork: true }
 );
+provider.pollingInterval = 500;
 const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 const tasdiqiContract = new ethers.Contract(
@@ -86,13 +87,27 @@ app.post('/api/sign-document', async (req, res) => {
     const signature = await currentSigner.signTypedData(domain, types, value);
     console.log('Signature berhasil dibuat:: ', signature);
 
+    const feeData = await provider.getFeeData();
+    console.log('Fee Data:', feeData);
+
+    const nonce = await provider.getTransactionCount(
+      currentSigner.address,
+      'latest'
+    );
+
     // kirim ke contract
-    const tx = await contractWithSigner.issueDocument(value, signature);
+    console.log('Mengirim transaksi ke blockchain...');
+    const tx = await contractWithSigner.issueDocument(value, signature, {
+      gasLimit: 500000,
+      gasPrice: ethers.parseUnits('100', 'gwei'),
+      nonce: nonce
+    });
+    console.log('Nonce:', nonce);
     console.log('value: ', value);
     console.log('Signature: ', signature);
     console.log('Menunggu transaksi selesai....');
 
-    const receipt = await tx.wait(1);
+    const receipt = await tx.wait();
     if (receipt) {
       console.log(` Transaksi Berhasil!`);
       console.log(`   Block Number : ${receipt.blockNumber}`);
@@ -111,7 +126,7 @@ app.post('/api/sign-document', async (req, res) => {
         from: receipt.from,
         to: receipt.to,
         status: receipt.status === 1 ? 'Success' : 'Failed',
-        signer_address: signer.address,
+        signer_address: currentSigner.address,
         timestamp: new Date().toISOString()
       }
     });

@@ -114,6 +114,12 @@ Mengecek apakah suatu hash dokumen sudah terdaftar di blockchain:
 cast call <CONTRACT_ADDRESS> "checkDocument(bytes32)(bool)" <DOC_HASH> --rpc-url $RPC_URL
 ```
 
+### Cek Ownable Contract
+
+```bash
+cast call <CONTRACT_ADDRESS> "owner()" --rpc-url $LOCAL_RPC_URL
+```
+
 ---
 
 ## 📂 Struktur Folder

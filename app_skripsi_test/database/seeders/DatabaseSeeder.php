@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
         $biros = [
             [
                 'nama_biro' => 'Biro Akademik',
-                'wallet_address' => '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' // 2
+                'wallet_address' => '0x16b346C9b77e2123569044dB9441dE8f4b75bc5B' // 2
             ],
             [
                 'nama_biro' => 'Biro Keuangan',

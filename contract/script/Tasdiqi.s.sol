@@ -6,7 +6,7 @@ import {Tasdiqi} from "../src/Tasdiqi.sol";
 
 contract DeployScript is Script {
     function run() public {
-        address _address = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
+        address _address = 0xdFF038f8bD5F2b621985806838B9c8242aeb13e8;
 
         vm.startBroadcast();
 
