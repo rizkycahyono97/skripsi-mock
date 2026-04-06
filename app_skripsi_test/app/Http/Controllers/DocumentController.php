@@ -60,6 +60,7 @@ class DocumentController extends Controller
     {
         // dd(request()->method(), request()->fullUrl());
         $document = Document::with(['student', 'biro'])->findOrFail($id);
+        // dd($document);
 
         if (!$document->biro->nama_biro || !$document->biro->wallet_address) {
             return redirect()->back()->with('error', 'Biro penanda tangan tidak valid.'); 

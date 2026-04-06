@@ -92,15 +92,15 @@ app.post('/api/sign-document', async (req, res) => {
 
     const nonce = await provider.getTransactionCount(
       currentSigner.address,
-      'latest'
+      'pending'
     );
 
     // kirim ke contract
     console.log('Mengirim transaksi ke blockchain...');
     const tx = await contractWithSigner.issueDocument(value, signature, {
       gasLimit: 500000,
-      gasPrice: ethers.parseUnits('100', 'gwei'),
-      nonce: nonce
+      maxFeePerGas: feeData.maxFeePerGas || 0,
+      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas || 0
     });
     console.log('Nonce:', nonce);
     console.log('value: ', value);
