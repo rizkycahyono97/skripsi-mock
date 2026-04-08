@@ -72,8 +72,8 @@ Gunakan `cast send` untuk memberikan akses ke alamat biro (contoh: Biro Akademik
 ```bash
 cast send <CONTRACT_ADDRESS> \
     "setSignerStatus(address,bool)" <WALLET_ADDRESS_BIRO> true \
-    --rpc-url $RPC_URL \
-    --private-key $PRIVATE_KEY
+    --rpc-url $LOCAL_RPC_URL \
+    --account account8
 ```
 
 ### 2\. Verifikasi Status Biro
@@ -83,7 +83,7 @@ Pastikan alamat tersebut sudah terdaftar dengan melakukan _call_ ke mapping:
 ```bash
 cast call <CONTRACT_ADDRESS> \
     "isAuthorizedSigner(address)(bool)" <WALLET_ADDRESS_BIRO> \
-    --rpc-url $RPC_URL
+    --rpc-url $LOCAL_RPC_URL
 ```
 
 _Hasil harus mengembalikan nilai `true`._
@@ -103,7 +103,7 @@ cast balance <ADDRESS> --rpc-url http://localhost:9545 --ether
 Untuk memastikan konfigurasi API Node.js sinkron dengan Contract:
 
 ```bash
-cast call <CONTRACT_ADDRESS> "getDomainSeparator()(bytes32)" --rpc-url $RPC_URL
+cast call <CONTRACT_ADDRESS> "getDomainSeparator()(bytes32)" --rpc-url $LOCAL_RPC_URL
 ```
 
 ### Cek Status Dokumen
@@ -111,7 +111,7 @@ cast call <CONTRACT_ADDRESS> "getDomainSeparator()(bytes32)" --rpc-url $RPC_URL
 Mengecek apakah suatu hash dokumen sudah terdaftar di blockchain:
 
 ```bash
-cast call <CONTRACT_ADDRESS> "checkDocument(bytes32)(bool)" <DOC_HASH> --rpc-url $RPC_URL
+cast call <CONTRACT_ADDRESS> "checkDocument(bytes32)(bool)" <DOC_HASH> --rpc-url $LOCAL_RPC_URL
 ```
 
 ### Cek Ownable Contract
