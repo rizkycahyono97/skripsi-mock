@@ -52,10 +52,23 @@ app.get('/healthy', (req, res) => {
 });
 
 app.post('/api/sign-document', async (req, res) => {
+  const startTime = Date.now();
+
   try {
     let { nomor_surat, nim, document_hash, biro_slug } = req.body;
 
+    console.log(
+      '\n================= [SIGN DOCUMENT REQUEST] ================='
+    );
+    console.log('Request Body:', {
+      nomor_surat,
+      nim,
+      document_hash,
+      biro_slug
+    });
+
     if (!nomor_surat || !nim || !document_hash || !biro_slug) {
+      console.log('[ERROR] Missing required fields');
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -63,6 +76,9 @@ app.post('/api/sign-document', async (req, res) => {
     const privateKeyBiro = process.env[envKeyName];
 
     if (!privateKeyBiro) {
+      console.log(
+        `[ERROR] Private key tidak ditemukan untuk biro: ${biro_slug}`
+      );
       return res.status(400).json({
         error: `Private key for biro '${biro_slug}' not found in environment variables`
       });
@@ -71,7 +87,10 @@ app.post('/api/sign-document', async (req, res) => {
     // signer secara dinamis
     const currentSigner = new ethers.Wallet(privateKeyBiro, provider);
     const contractWithSigner = tasdiqiContract.connect(currentSigner);
-    console.log(`Menggunakan signer: ${biro_slug} (${currentSigner.address})`);
+
+    console.log('\n[STEP 1] SIGNER INFO');
+    console.log('Address:', currentSigner.address);
+    console.log('Biro   :', biro_slug);
 
     if (document_hash && !document_hash.startsWith('0x')) {
       document_hash = '0x' + document_hash;
@@ -83,37 +102,63 @@ app.post('/api/sign-document', async (req, res) => {
       doc_hash: document_hash
     };
 
+    console.log('\n[STEP 2] EIP-712 DATA');
+    console.log('Domain:', domain);
+    console.log('Types :', types);
+    console.log('Value :', value);
+
     //signing EIP-712
     const signature = await currentSigner.signTypedData(domain, types, value);
-    console.log('Signature berhasil dibuat:: ', signature);
+
+    console.log('\n[STEP 3] SIGNATURE CREATED');
+    console.log('Signature:', signature);
 
     const feeData = await provider.getFeeData();
-    console.log('Fee Data:', feeData);
-
     const nonce = await provider.getTransactionCount(
       currentSigner.address,
       'pending'
     );
 
+    console.log('\n[STEP 4] TRANSACTION PREPARATION');
+    console.log('Nonce              :', nonce);
+    if (feeData.maxFeePerGas && feeData.maxPriorityFeePerGas) {
+      console.log('Mode              : EIP-1559');
+      console.log('Max Fee Per Gas   :', feeData.maxFeePerGas.toString());
+      console.log(
+        'Max Priority Fee  :',
+        feeData.maxPriorityFeePerGas.toString()
+      );
+    } else {
+      console.log('Mode              : LEGACY');
+      console.log('Gas Price         :', feeData.gasPrice?.toString() || '0');
+    }
+
     // kirim ke contract
-    console.log('Mengirim transaksi ke blockchain...');
+    console.log('\n[STEP 5] SENDING TRANSACTION...');
     const tx = await contractWithSigner.issueDocument(value, signature, {
       gasLimit: 500000,
       maxFeePerGas: feeData.maxFeePerGas || 0,
       maxPriorityFeePerGas: feeData.maxPriorityFeePerGas || 0
     });
-    console.log('Nonce:', nonce);
-    console.log('value: ', value);
-    console.log('Signature: ', signature);
-    console.log('Menunggu transaksi selesai....');
+
+    console.log('Tx Hash (pending):', tx.hash);
 
     const receipt = await tx.wait();
-    if (receipt) {
-      console.log(` Transaksi Berhasil!`);
-      console.log(`   Block Number : ${receipt.blockNumber}`);
-      console.log(`   Tx Hash      : ${receipt.hash}`);
-      console.log(`   Gas Used     : ${receipt.gasUsed.toString()}`);
-    }
+
+    console.log('\n[STEP 6] TRANSACTION CONFIRMED');
+    console.log('Status       :', receipt.status === 1 ? 'SUCCESS' : 'FAILED');
+    console.log('Block Number :', receipt.blockNumber);
+    console.log('Gas Used     :', receipt.gasUsed.toString());
+    console.log('From         :', receipt.from);
+    console.log('To           :', receipt.to);
+
+    const duration = Date.now() - startTime;
+
+    console.log('\n[COMPLETED]');
+    console.log('Execution Time:', duration + ' ms');
+    console.log(
+      '===========================================================\n'
+    );
 
     //response
     return res.json({
@@ -127,11 +172,20 @@ app.post('/api/sign-document', async (req, res) => {
         to: receipt.to,
         status: receipt.status === 1 ? 'Success' : 'Failed',
         signer_address: currentSigner.address,
+        execution_time_ms: duration,
         timestamp: new Date().toISOString()
       }
     });
   } catch (e) {
-    console.error('Error signing document:', e);
+    console.error('\n[ERROR SIGN DOCUMENT]');
+    console.error('Message:', e.message);
+    console.error('Reason :', e.reason);
+    console.error('Code   :', e.code);
+    console.error('Stack  :', e.stack);
+    console.error(
+      '===========================================================\n'
+    );
+
     return res.status(500).json({
       success: false,
       message: 'Gagal memproses transaksi ke Blockchain',
