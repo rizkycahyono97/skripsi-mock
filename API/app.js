@@ -120,7 +120,7 @@ app.post('/api/sign-document', async (req, res) => {
     );
 
     console.log('\n[STEP 4] TRANSACTION PREPARATION');
-    console.log('Nonce              :', nonce);
+    console.log('Nonce               :', nonce);
     if (feeData.maxFeePerGas && feeData.maxPriorityFeePerGas) {
       console.log('Mode              : EIP-1559');
       console.log('Max Fee Per Gas   :', feeData.maxFeePerGas.toString());
