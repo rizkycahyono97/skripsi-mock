@@ -30,6 +30,7 @@ contract Tasdiqi is EIP712, Ownable {
     );
     event SignerStatusChanged(address indexed _signer, bool _status);
 
+    // ini juga untuk domain separator
     constructor(
         address initialOwner
     ) EIP712("Tasdiqi-UNIDA", "1") Ownable(initialOwner) {
@@ -58,10 +59,10 @@ contract Tasdiqi is EIP712, Ownable {
             )
         );
 
-        // gabung domain separator + stuctHash
+        // rebuild hash
         bytes32 hash = _hashTypedDataV4(structHash);
 
-        // recover signature dari API
+        // recover signature
         address signer = hash.recover(signature);
 
         require(
