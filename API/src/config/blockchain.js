@@ -1,4 +1,4 @@
-import 'dotenv/config'; // Wajib di baris pertama agar .env terbaca
+import 'dotenv/config';
 import { ethers } from 'ethers';
 import fs from 'fs';
 
