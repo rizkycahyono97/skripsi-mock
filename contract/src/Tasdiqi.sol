@@ -5,40 +5,59 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+/**
+ * @title Tasdiqi - Digital Document Verification System
+ * @author https://github.com/rizkycahyono97
+ * @notice Kontrak ini menyediakan sistem verifikasi dokumen digital menggunakan standar EIP-712.
+ * @dev Menggunakan OpenZeppelin v4.9 EIP712 untuk typed data signing dan Ownable untuk kontrol akses validator.
+ *      Arsip bertindak sebagai validator tunggal yang menandatangani data secara off-chain sebelum diposting ke blockchain.
+ */
 contract Tasdiqi is EIP712, Ownable {
     using ECDSA for bytes32;
 
-    // stuktur dokumen
+    /// @notice Struktur data Dokumen untuk informasi dokumen yang akan diverifikasi
     struct Document {
         string nomor_surat;
         string nim;
         bytes32 doc_hash;
     }
 
-    // type untuk stuktur document
+    /**
+     * @dev Hash TypeHash Document sesuai standar EIP-712.
+     * Digunakan untuk membangun structHash saat proses verifikasi tanda tangan.
+     */
     bytes32 private constant DOCUMENT_TYPEHASH =
         keccak256("Document(string nomor_surat,string nim,bytes32 doc_hash)");
 
-    // mapping jika document berhasil, dari hash => bool
+    /// @notice Mapping untuk mengecek apakah hash dokumen sudah terdaftar (true jika sudah ada)
     mapping(bytes32 => bool) public verifiedDocuments;
+    /// @notice Mapping alamat wallet yang digunakan sebagai Validator (Single of Authority)
     mapping(address => bool) public authorizedValidator;
 
+    /// @notice Event yang dipicu saat dokumen baru berhasil didaftarkan ke blockchain
     event DocumentIssued(
         bytes32 indexed docHash,
         string nomorSurat,
         address indexed signer
     );
-    event SignerStatusChanged(address indexed _signer, bool _status);
+    /// @notice Event yang dipicu saat status otorisasi seorang validator berubah
+    event ValidatorDocumentStatus(address indexed _signer, bool _status);
 
-    // ini juga untuk domain separator
+    /**
+     * @notice Inisialisasi kontrak Tasdiqi
+     * @param initialOwner Alamat wallet yang akan menjadi Owner dan validator awal (Bagian Arsip)
+     */
     constructor(
         address initialOwner
     ) EIP712("Tasdiqi-UNIDA", "1") Ownable(initialOwner) {
-        authorizedValidator[initialOwner] = true; //mapping
+        authorizedValidator[initialOwner] = true;
     }
 
     /**
-     *
+     * @notice Mendaftarkan dokumen baru ke dalam blockchain setelah di validasi oleh Arsip
+     * @dev Memverifikasi tanda tangan EIP-712 dan memastikan signer adalah validator resmi
+     * @param doc Struct Document berisi data dokumen yang generik
+     * @param signature Tanda tangan digital (v, r, s) yang dihasilkan oleh validator off-chain
      */
     function issueDocument(
         Document calldata doc,
@@ -49,7 +68,7 @@ contract Tasdiqi is EIP712, Ownable {
             "Tasdiqi: Dokumen sudah terdaftar di Blockchain."
         );
 
-        // hashtype + data
+        // rekonstruksi structHash
         bytes32 structHash = keccak256(
             abi.encode(
                 DOCUMENT_TYPEHASH,
@@ -59,15 +78,15 @@ contract Tasdiqi is EIP712, Ownable {
             )
         );
 
-        // rebuild hash
+        // rekonstruksi domain separator
         bytes32 hash = _hashTypedDataV4(structHash);
 
-        // recover signature
+        // Mendapatkan alamat validator  dan hash
         address signer = hash.recover(signature);
 
         require(
             isAuthorizedValidator(signer),
-            "Tasdiqi: Tanda tangan tidak sah atau bukan dari biro"
+            "Tasdiqi: Validasi tidak sah, Validator salah!"
         );
 
         verifiedDocuments[doc.doc_hash] = true;
@@ -75,24 +94,41 @@ contract Tasdiqi is EIP712, Ownable {
         emit DocumentIssued(doc.doc_hash, doc.nomor_surat, signer);
     }
 
-    //untuk set signer ke contract
+    /**
+     * @notice Mengatur status otorisasi validator (Hanya untuk Owner)
+     * @param _signer Alamat wallet validator yang akan diatur
+     * @param status Status otorisasi (true untuk aktif, false untuk non-aktif)
+     */
     function setValidatorDocument(
         address _signer,
         bool status
     ) external onlyOwner {
         authorizedValidator[_signer] = status; //mapping
-        emit SignerStatusChanged(_signer, status);
+        emit ValidatorDocumentStatus(_signer, status);
     }
 
-    // ceck _signer apakah ada di mapping authorizedValidator
+    /**
+     * @notice Mengecek apakah sebuah alamat adalah validator resmi
+     * @param _signer Alamat wallet yang ingin dicek
+     * @return bool True jika alamat tersebut adalah validator resmi
+     */
     function isAuthorizedValidator(address _signer) public view returns (bool) {
         return authorizedValidator[_signer];
     }
 
+    /**
+     * @notice Mengecek status verifikasi sebuah dokumen berdasarkan hash-nya
+     * @param _docHash Hash dokumen (bytes32)
+     * @return bool True jika dokumen sudah terverifikasi di blockchain
+     */
     function checkDocument(bytes32 _docHash) external view returns (bool) {
         return verifiedDocuments[_docHash];
     }
 
+    /**
+     * @notice Mendapatkan Domain Separator yang digunakan untuk EIP-712
+     * @return bytes32 Hash domain separator
+     */
     function getDomainSeparator() public view returns (bytes32) {
         return _domainSeparatorV4();
     }
