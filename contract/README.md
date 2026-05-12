@@ -130,9 +130,14 @@ cast call <CONTRACT_ADDRESS> "owner()" --rpc-url $LOCAL_RPC_URL
 
 ---
 
+### Depedencies Penting
+
+1. **Foundry**: Foundry untuk contract development. docs [foundry](https://www.getfoundry.sh/)
+2. **OpenZeppelin v4.9**: untuk konfigurasi EIP-712. docs [OpenZeppelin](https://docs.openzeppelin.com/contracts/4.x/api/interfaces)
+
+---
+
 **Kontak Pengembang:**
 Rizky Cahyono Putra - Teknik Informatika
 
 ---
-
-**Next step:** Apakah kamu ingin saya buatkan juga file **`deploy.sh`**? Jadi kamu cukup menjalankan satu script saja untuk deploy sekaligus mendaftarkan semua biro dari seeder secara otomatis.
