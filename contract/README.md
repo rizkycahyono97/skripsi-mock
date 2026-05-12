@@ -71,7 +71,7 @@ Gunakan `cast send` untuk memberikan akses ke alamat biro (contoh: Biro Akademik
 
 ```bash
 cast send <CONTRACT_ADDRESS> \
-    "setSignerStatus(address,bool)" <WALLET_ADDRESS_BIRO> true \
+    "setValidatorDocument(address,bool)" <WALLET_ADDRESS_BIRO> true \
     --rpc-url $LOCAL_RPC_URL \
     --account account8
 ```
@@ -82,7 +82,7 @@ Pastikan alamat tersebut sudah terdaftar dengan melakukan _call_ ke mapping:
 
 ```bash
 cast call <CONTRACT_ADDRESS> \
-    "isAuthorizedSigner(address)(bool)" <WALLET_ADDRESS_BIRO> \
+    "isAuthorizedValidator(address)(bool)" <WALLET_ADDRESS_BIRO> \
     --rpc-url $LOCAL_RPC_URL
 ```
 

@@ -66,7 +66,7 @@ contract Tasdiqi is EIP712, Ownable {
         address signer = hash.recover(signature);
 
         require(
-            isAuthorizedSigner(signer),
+            isAuthorizedValidator(signer),
             "Tasdiqi: Tanda tangan tidak sah atau bukan dari biro"
         );
 
@@ -76,13 +76,16 @@ contract Tasdiqi is EIP712, Ownable {
     }
 
     //untuk set signer ke contract
-    function setSignerStatus(address _signer, bool status) external onlyOwner {
+    function setValidatorDocument(
+        address _signer,
+        bool status
+    ) external onlyOwner {
         authorizedValidator[_signer] = status; //mapping
         emit SignerStatusChanged(_signer, status);
     }
 
     // ceck _signer apakah ada di mapping authorizedValidator
-    function isAuthorizedSigner(address _signer) public view returns (bool) {
+    function isAuthorizedValidator(address _signer) public view returns (bool) {
         return authorizedValidator[_signer];
     }
 
