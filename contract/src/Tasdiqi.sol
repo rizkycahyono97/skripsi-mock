@@ -21,7 +21,7 @@ contract Tasdiqi is EIP712, Ownable {
 
     // mapping jika document berhasil, dari hash => bool
     mapping(bytes32 => bool) public verifiedDocuments;
-    mapping(address => bool) public authorizedSigners;
+    mapping(address => bool) public authorizedValidator;
 
     event DocumentIssued(
         bytes32 indexed docHash,
@@ -34,7 +34,7 @@ contract Tasdiqi is EIP712, Ownable {
     constructor(
         address initialOwner
     ) EIP712("Tasdiqi-UNIDA", "1") Ownable(initialOwner) {
-        authorizedSigners[initialOwner] = true; //mapping
+        authorizedValidator[initialOwner] = true; //mapping
     }
 
     /**
@@ -77,13 +77,13 @@ contract Tasdiqi is EIP712, Ownable {
 
     //untuk set signer ke contract
     function setSignerStatus(address _signer, bool status) external onlyOwner {
-        authorizedSigners[_signer] = status; //mapping
+        authorizedValidator[_signer] = status; //mapping
         emit SignerStatusChanged(_signer, status);
     }
 
-    // ceck _signer apakah ada di mapping authorizedSigners
+    // ceck _signer apakah ada di mapping authorizedValidator
     function isAuthorizedSigner(address _signer) public view returns (bool) {
-        return authorizedSigners[_signer];
+        return authorizedValidator[_signer];
     }
 
     function checkDocument(bytes32 _docHash) external view returns (bool) {

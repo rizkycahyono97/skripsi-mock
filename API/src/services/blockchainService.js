@@ -2,17 +2,14 @@ import { ethers } from 'ethers';
 import { provider, getContract } from '../config/blockchain.js';
 import { domain, types } from '../constants/eip712.js';
 
-export const signAndIssueDocument = async (biroSlug, payload) => {
-  const envKeyName = biroSlug.toUpperCase().replace(/-/g, '_');
-  const privateKeyBiro = process.env[envKeyName];
+export const signAndIssueDocument = async payload => {
+  const validator = process.env.VALIDATOR_PRIVATE_KEY;
 
-  if (!privateKeyBiro) {
-    throw new Error(
-      `Private key for biro '${biroSlug}' not found in environment variables`
-    );
+  if (!validator) {
+    throw new Error(`Validator private key not found in environment variables`);
   }
 
-  const wallet = new ethers.Wallet(privateKeyBiro, provider);
+  const wallet = new ethers.Wallet(validator, provider);
   const contract = getContract(wallet);
 
   //  EIP-712 signing

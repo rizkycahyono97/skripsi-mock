@@ -2,13 +2,13 @@
 
 API berbasis **Node.js** dan **Express.js** untuk melakukan penandatanganan dokumen digital menggunakan standar **EIP-712** dan menyimpannya ke blockchain lokal **Hyperledger Besu**.
 
-## 🚀 Fitur Utama
+## ⚖️ Konsep Validasi Dokumen (Arsip)
 
-- **EIP-712 Typed Data Signing**: Menghasilkan tanda tangan yang _human-readable_.
-- **Modular Architecture**: Pemisahan tanggung jawab antara route, controller, dan service.
-- **Multi-Biro Support**: Mendukung banyak signer (biro) secara dinamis via environment variables.
-- **API Key Protection**: Keamanan endpoint menggunakan middleware otentikasi.
-- **Gasless Verification**: Logika verifikasi tanda tangan tanpa biaya gas.
+Sistem ini menggunakan model **Single Validator**. Dokumen yang masuk dari berbagai unit akan melalui proses verifikasi oleh bagian **Arsip**.
+
+1. **Submission**: Dokumen dikirim ke API dengan metadata (Nomor Surat, NIM, Hash).
+2. **Validation**: API menggunakan Private Key milik **Arsip** untuk menandatangani data tersebut sesuai standar **EIP-712**.
+3. **Immutability**: Transaksi dikirim ke **Hyperledger Besu**. Smart contract akan memverifikasi bahwa tanda tangan tersebut valid dan benar-benar berasal dari alamat wallet **Arsip** sebelum data disimpan secara permanen.
 
 ---
 
