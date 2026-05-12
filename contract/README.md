@@ -82,7 +82,7 @@ Pastikan alamat tersebut sudah terdaftar dengan melakukan _call_ ke mapping:
 
 ```bash
 cast call <CONTRACT_ADDRESS> \
-    "isAuthorizedValidator(address)(bool)" <WALLET_ADDRESS_BIRO> \
+    "isAuthorizedValidator(address)" <WALLET_ADDRESS_BIRO> \
     --rpc-url $LOCAL_RPC_URL
 ```
 
