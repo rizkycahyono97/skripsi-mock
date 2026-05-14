@@ -1,72 +1,67 @@
-# QBFT Private Network with Hyperledger Besu (Docker)
+# QBFT Private Blockchain Network
 
-Panduan lengkap membuat jaringan blockchain private menggunakan **QBFT consensus** dengan Docker, dari awal hingga network berjalan.
+Implementasi Private Blockchain menggunakan Hyperledger Besu dengan mekanisme konsensus QBFT (Quorum Byzantine Fault Tolerance) untuk kebutuhan validasi dokumen akademik berbasis blockchain.
+
+## Arsitektur Network
+
+Network terdiri dari:
+
+| Node   | Role                |
+| ------ | ------------------- |
+| Node-1 | Validator           |
+| Node-2 | Validator           |
+| Node-3 | Validator           |
+| Node-4 | RPC / Non-Validator |
 
 ---
 
-# 1. Prasyarat
+# Requirement
 
-Pastikan sudah terinstall:
+Pastikan sistem sudah terinstall:
 
 - Docker
 - Docker Compose
-
-Cek versi:
-
-```bash
-docker --version
-docker compose version
-besu --version
-```
+- Hyperledger Besu
 
 ---
 
-# 2. Struktur Folder
+# Install Hyperledger Besu
 
-Buat struktur project seperti berikut:
+Download Binary Distribution:
 
-```
+[Doc Instalasi Besu](https://besu.hyperledger.org/private-networks/get-started/install/binary-distribution)
+
+---
+
+# Struktur Folder
+
+```bash
 QBFT-Networks/
+│
 ├── docker-compose.yaml
-├── qbftConfig.json
-├── networkFiles/
-│   ├── genesis.json
-│   └── keys/
+├── qbftConfig.json  #config awal
+├── README.md
+│
+├── networkFiles/  #hasil setelah config digenerate
+│
+│   # Nodes Blockchain
+├── Node-1/
+├── Node-2/
+├── Node-3/
+└── Node-4/
 ```
 
 ---
 
-# 3. Generate Validator Key
+# Step 1 — Membuat QBFT Config
 
-Buat 1 validator (contoh: PPTIK sebagai authority awal):
-
-```bash
-mkdir -p networkFiles/keys
-besu public-key export-address --to=networkFiles/keys/validator
-```
-
-Atau generate manual:
+Buat file:
 
 ```bash
-besu operator generate-blockchain-config \
-  --config-file=qbftConfig.json \
-  --to=networkFiles
+touch qbftConfig.json
 ```
 
-File penting:
-
-```
-networkFiles/keys/<address>/key
-networkFiles/keys/<address>/key.pub
-```
-
-Address inilah yang akan menjadi validator awal.
-
----
-
-# 4. Membuat qbftConfig.json
-
-Contoh konfigurasi:
+Isi dengan:
 
 ```json
 {
@@ -74,264 +69,204 @@ Contoh konfigurasi:
     "config": {
       "chainId": 1337,
       "berlinBlock": 0,
-      "londonBlock": 0,
       "qbft": {
         "blockperiodseconds": 2,
         "epochlength": 30000,
-        "requesttimeoutseconds": 4
+        "requesttimeoutseconds": 10
       }
-    }
+    },
+    "nonce": "0x0",
+    "timestamp": "0x58ee40ba",
+    "gasLimit": "0x1fffffffffffff",
+    "difficulty": "0x1",
+    "mixHash": "0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365",
+    "coinbase": "0x0000000000000000000000000000000000000000",
+    "alloc": {}
   },
   "blockchain": {
     "nodes": {
-      "generate": true
+      "generate": true,
+      "count": 4
     }
   }
 }
 ```
 
-Kemudian generate genesis:
+---
+
+# Step 2 — Generate Blockchain Config
+
+Jalankan command berikut:
 
 ```bash
 besu operator generate-blockchain-config \
-  --config-file=qbftConfig.json \
-  --to=networkFiles
+--config-file=qbftConfigFile.json \
+--to=networkFiles \
+--private-key-file-name=key
 ```
 
-Genesis akan otomatis berisi `extraData` yang benar.
-
----
-
-# 5. Tentang Difficulty (Penting)
-
-Dalam QBFT:
-
-- **Difficulty TIDAK digunakan untuk mining**
-- QBFT adalah Proof-of-Authority (BFT based)
-- Block dibuat oleh validator, bukan berdasarkan hash power
-
-Namun field difficulty tetap wajib ada di genesis.
-
-Gunakan nilai standar:
-
-```json
-"difficulty": "0x1"
-```
-
-Tidak perlu dihitung atau disesuaikan secara manual.
-
----
-
-# 6. Contoh genesis.json Final
-
-Pastikan memiliki bagian berikut:
-
-```json
-{
-  "config": {
-    "chainId": 1337,
-    "berlinBlock": 0,
-    "londonBlock": 0,
-    "qbft": {
-      "blockperiodseconds": 2,
-      "epochlength": 30000,
-      "requesttimeoutseconds": 4
-    }
-  },
-  "difficulty": "0x1",
-  "gasLimit": "0x1fffffffffffff",
-  "extraData": "<generated otomatis>",
-  "alloc": {
-    "<validator-address>": {
-      "balance": "0xad78ebc5ac6200000"
-    }
-  }
-}
-```
-
-JANGAN mengedit `extraData` secara manual.
-
----
-
-# 7. Docker Compose
-
-Contoh `docker-compose.yaml`:
-
-```yaml
-version: '3.8'
-
-services:
-  besu-node:
-    image: hyperledger/besu:latest
-    container_name: besu-node
-    volumes:
-      - ./networkFiles/genesis.json:/opt/besu/genesis.json
-      - ./networkFiles/keys:/opt/besu/keys
-      - ./Node-1/data:/opt/besu/data
-    ports:
-      - '8545:8545'
-      - '30303:30303'
-    command:
-      - --genesis-file=/opt/besu/genesis.json
-      - --data-path=/opt/besu/data
-      - --node-private-key-file=/opt/besu/keys/<address>/key
-      - --rpc-http-enabled
-      - --rpc-http-api=ETH,NET,QBFT
-      - --host-allowlist=*
-      - --rpc-http-cors-origins=all
-      - --min-gas-price=0
-```
-
-Ganti `<address>` dengan folder validator key.
-
----
-
-# 8. Jalankan Network
-
-Pastikan folder data kosong jika mengganti genesis:
+Hasil generate:
 
 ```bash
-rm -rf Node-1/data
+networkFiles/
+├── genesis.json
+└── keys/
 ```
 
-Start node:
+---
+
+# Step 3 — Setup Node Data
+
+## Genesis.json
 
 ```bash
-docker compose up -d
+cp networkFiles/genesis.json .
 ```
 
-Cek log:
+## Node-1
 
 ```bash
-docker logs -f besu-node
-```
+mkdir -p Node-1/data
 
-Pastikan TIDAK ada error:
-
-```
-Genesis block contains no signers
+cp networkFiles/keys/<NODE1_ADDRESS>/key Node-1/data/
+cp networkFiles/keys/<NODE1_ADDRESS>/key.pub Node-1/data/
 ```
 
 ---
 
-# 9. Interaksi ke Blockchain
-
-Cek validator:
+## Node-2
 
 ```bash
-curl -X POST localhost:8545 \
-  -H "Content-Type: application/json" \
-  --data '{"jsonrpc":"2.0","method":"qbft_getValidatorsByBlockNumber","params":["latest"],"id":1}'
-```
+mkdir -p Node-2/data
 
-Output seharusnya:
-
-```json
-{
-  "result": ["0x..."]
-}
+cp networkFiles/keys/<NODE2_ADDRESS>/key Node-2/data/
+cp networkFiles/keys/<NODE2_ADDRESS>/key.pub Node-2/data/
 ```
 
 ---
 
-# 10. Menambah Validator (Production Best Practice)
-
-Setelah network berjalan, gunakan voting:
+## Node-3
 
 ```bash
-qbft_proposeValidatorVote
+mkdir -p Node-3/data
+
+cp networkFiles/keys/<NODE3_ADDRESS>/key Node-3/data/
+cp networkFiles/keys/<NODE3_ADDRESS>/key.pub Node-3/data/
 ```
 
-Tidak perlu restart chain.
-
 ---
 
-# 11. Catatan Production
+## Node-4
 
-Rekomendasi:
+```bash
+mkdir -p Node-4/data
 
-- Minimal 4 validator
-- Simpan private key di volume terpisah
-- Jangan commit private key ke Git
-- Gunakan governance voting untuk tambah/hapus validator
-
----
-
-# Kesimpulan
-
-- Validator WAJIB ada di genesis
-- extraData harus di-generate otomatis
-- difficulty tetap diisi 0x1 (tidak berpengaruh di QBFT)
-- Jika genesis berubah → hapus data dan restart node
-
-Network QBFT siap digunakan 🎉
-
----
-
-# 12. .gitignore (Penting untuk Keamanan)
-
-Agar private key, database, dan credential tidak ter-commit ke repository, buat file `.gitignore` di root project:
-
-```
-# =============================
-# Besu Private Network Secrets
-# =============================
-
-# Private keys
-networkFiles/keys/
-Node-*/data/key
-
-# Blockchain database
-Node-*/data/database/
-Node-*/data/caches/
-Node-*/data/*.json
-Node-*/data/*.log
-Node-*/data/LOCK
-
-# Generated ports & runtime files
-Node-*/data/besu.ports
-Node-*/data/besu.networks
-
-# Docker override files
-*.env
-.env
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Backup files
-*.bak
-*.swp
+cp networkFiles/keys/<NODE4_ADDRESS>/key Node-4/data/
+cp networkFiles/keys/<NODE4_ADDRESS>/key.pub Node-4/data/
 ```
 
-## 🔐 Kenapa Ini Penting?
+---
 
-Folder berikut **WAJIB tidak masuk Git**:
+# Step 5 — Running Network
 
-- `networkFiles/keys/` → berisi private key validator
-- `Node-*/data/` → berisi blockchain database
+## Node 1 as bootnode
 
-Jika private key bocor:
+```bash
+besu --data-path=data --genesis-file=../genesis.json --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --profile=ENTERPRISE
+```
 
-- Validator bisa diambil alih
-- Network bisa dimanipulasi
-- Authority (misalnya PPTIK) kehilangan kontrol
+copy semua **URL enode** dari bootnode ke semua Node ketika mau running.
+
+## Node 2
+
+```bash
+besu --data-path=data --genesis-file=../genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30304 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8546 --profile=ENTERPRISE
+```
+
+## Node 3
+
+```bash
+besu --data-path=data --genesis-file=../genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30305 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8547 --profile=ENTERPRISE
+```
+
+## Node 4
+
+```
+besu --data-path=data --genesis-file=../genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30306 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8548 --profile=ENTERPRISE
+```
 
 ---
 
-# 13. Best Practice Tambahan (Opsional Tapi Direkomendasikan)
+# Step 6 — Cek Blockchain
 
-Untuk keamanan production:
+Cek block number:
 
-- Gunakan environment variable untuk sensitive config
-- Simpan private key di external volume
-- Pertimbangkan penggunaan Vault atau HSM untuk validator production
-- Batasi akses RPC menggunakan firewall
+```bash
+curl -X POST --data '{
+  "jsonrpc":"2.0",
+  "method":"eth_blockNumber",
+  "params":[],
+  "id":1
+}' http://localhost:8545
+```
+
+Cek Validator
+
+```bash
+curl -X POST --data '{
+  "jsonrpc":"2.0",
+  "method":"qbft_getValidatorsByBlockNumber",
+  "params":["latest"],
+  "id":1
+}' http://localhost:8545
+```
 
 ---
 
-Sekarang repository kamu aman dari kebocoran credential 🚀
+# Step 7 — Cek Validator
+
+---
+
+# Step 8 — Testing Fault Tolerance
+
+Matikan salah satu validator:
+
+Cek kembali block:
+
+```bash
+curl -X POST --data '{
+  "jsonrpc":"2.0",
+  "method":"eth_blockNumber",
+  "params":[],
+  "id":1
+}' http://localhost:8545
+```
+
+Jika block masih berjalan, maka mekanisme fault tolerance QBFT berhasil.
+
+---
+
+# Catatan
+
+- Network menggunakan mekanisme konsensus QBFT
+- Menggunakan private blockchain
+- Gas price diset `0` untuk kebutuhan zero-gas transaction
+- Node-4 digunakan sebagai RPC endpoint untuk middleware dan frontend
+
+---
+
+# RPC Endpoint
+
+```bash
+http://localhost:8545
+```
+
+---
+
+# Teknologi
+
+- Hyperledger Besu
+- Docker
+- Docker Compose
+- QBFT Consensus
+- Ethereum JSON-RPC
