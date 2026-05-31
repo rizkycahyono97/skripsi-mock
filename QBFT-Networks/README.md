@@ -100,9 +100,10 @@ Jalankan command berikut:
 
 ```bash
 besu operator generate-blockchain-config \
---config-file=qbftConfigFile.json \
+--config-file=qbftConfig.json \
 --to=networkFiles \
---private-key-file-name=key
+--private-key-file-name=key \
+--min-gas-price=0
 ```
 
 Hasil generate:
@@ -165,14 +166,32 @@ cp networkFiles/keys/<NODE4_ADDRESS>/key Node-4/data/
 cp networkFiles/keys/<NODE4_ADDRESS>/key.pub Node-4/data/
 ```
 
+# Step 5 - Memasukan Saldo Awal
+
+masukan saldo awal ke address deployer dan juga biro / arsip, di file networkFiles/genesis.json
+
+```bash
+"alloc": {
+    "0xdFF038f8bD5F2b621985806838B9c8242aeb13e8": {
+      "balance": "1000000000000000000000000"
+    },
+    "0x16b346C9b77e2123569044dB9441dE8f4b75bc5B": {
+      "balance": "1000000000000000000000000"
+    },
+    "0x90F79bf6EB2c4f870365E785982E1f101E93b906": {
+      "balance": "1000000000000000000000000"
+    }
+  },
+```
+
 ---
 
-# Step 5 — Running Network
+# Step 6 — Running Network
 
 ## Node 1 as bootnode
 
 ```bash
-besu --data-path=data --genesis-file=../genesis.json --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --profile=ENTERPRISE
+besu --data-path=data --genesis-file=../networkFiles/genesis.json --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --profile=ENTERPRISE --min-gas-price=0
 ```
 
 copy semua **URL enode** dari bootnode ke semua Node ketika mau running.
@@ -180,19 +199,19 @@ copy semua **URL enode** dari bootnode ke semua Node ketika mau running.
 ## Node 2
 
 ```bash
-besu --data-path=data --genesis-file=../genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30304 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8546 --profile=ENTERPRISE
+besu --data-path=data --genesis-file=../networkFiles/genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30304 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8546 --profile=ENTERPRISE --min-gas-price=0
 ```
 
 ## Node 3
 
 ```bash
-besu --data-path=data --genesis-file=../genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30305 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8547 --profile=ENTERPRISE
+besu --data-path=data --genesis-file=../networkFiles/genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30305 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8547 --profile=ENTERPRISE --min-gas-price=0
 ```
 
 ## Node 4
 
-```
-besu --data-path=data --genesis-file=../genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30306 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8548 --profile=ENTERPRISE
+```bash
+besu --data-path=data --genesis-file=../networkFiles/genesis.json --bootnodes=<Node-1 Enode URL> --p2p-port=30306 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8548 --profile=ENTERPRISE --min-gas-price=0
 ```
 
 ---

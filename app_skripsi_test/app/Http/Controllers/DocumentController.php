@@ -29,7 +29,7 @@ class DocumentController extends Controller
                 'nim' => 'required|exists:students,nim',
                 'perihal' => 'required',
                 'tanggal_surat' => 'required|date',
-                'biro_id' => 'required|exists:biros,id'
+                'biro_id' => 'required|exists:biros,id',
             ]);
 
             $student = Student::where('nim', $validated['nim'])->firstOrFail();
@@ -62,8 +62,8 @@ class DocumentController extends Controller
         $document = Document::with(['student', 'biro'])->findOrFail($id);
         // dd($document);
 
-        if (!$document->biro->nama_biro || !$document->biro->wallet_address) {
-            return redirect()->back()->with('error', 'Biro penanda tangan tidak valid.'); 
+        if (! $document->biro->nama_biro || ! $document->biro->wallet_address) {
+            return redirect()->back()->with('error', 'Biro penanda tangan tidak valid.');
         }
 
         $documentHash = $this->generateHash($document);
@@ -75,27 +75,37 @@ class DocumentController extends Controller
         }
 
         try {
-            $response = Http::timeout(30)->post('http://localhost:8001/api/sign-document', [
-                // 'document_id' => $document->id,
-                'nomor_surat' => $document->nomor_surat,
-                'nim' => $document->student->nim,
-                // 'name' => $document->student->name,
-                'document_hash' => $documentHash,
-                'biro_slug' => $document->biro->slug,
-            ]);
+            $response = Http::timeout(30)
+                ->withHeaders([
+                    'X-API-Key' => '34rsdf345t2345grfsdsdfv',
+                    'Accept' => 'application/json',
+                ])
+                ->post('http://localhost:8001/api/v1/sign', [
+                    // 'document_id' => $document->id,
+                    'nomor_surat' => $document->nomor_surat,
+                    'nim' => $document->student->nim,
+                    // 'name' => $document->student->name,
+                    'document_hash' => $documentHash,
+                    'biro_slug' => $document->biro->slug,
+                ]);
 
-            // dd($response);
+            // dd($response->json());
 
             if ($response->successful() && $response['success']) {
 
-                $blockchainData = $response['data'];
+                $blockchainData = $response->json('data');
+                dd($blockchainData);
+
+                if ($blockchainData['status'] === 'Failed') {
+                    return redirect()->back()->with('error', 'Validasi gagal: Transaksi di-revert oleh Blockchain Besu.');
+                }
 
                 $document->update([
                     'status' => 'signed',
-                    'blockchain_tx_hash' => $blockchainData['tx_hash'], 
-                    'block_number'       => $blockchainData['block_number'],
-                    'gas_used'           => $blockchainData['gas_used'],
-                    'signer_address'     => $blockchainData['signer_address'],
+                    'blockchain_tx_hash' => $blockchainData['tx_hash'],
+                    'block_number' => $blockchainData['block_number'],
+                    'gas_used' => $blockchainData['gas_used'],
+                    'signer_address' => $blockchainData['from'],
                     'issued_at' => now(),
                 ]);
 
@@ -106,7 +116,8 @@ class DocumentController extends Controller
         }
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         $document = Document::with(['biro', 'student'])->findOrFail($id);
 
         return view('documents.show', compact('document'));

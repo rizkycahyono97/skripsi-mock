@@ -19,6 +19,7 @@ export const signAndIssueDocument = async (
 
   const feeData = await provider.getFeeData();
   const tx = await contract.issueDocument(payload, signature);
+  const receipt = await tx.wait();
 
-  return tx;
+  return receipt;
 };

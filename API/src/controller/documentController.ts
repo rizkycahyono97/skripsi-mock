@@ -35,7 +35,7 @@ export const signDocument = async (
     const responseData: ValidationResponseData = {
       tx_hash: receipt.hash,
       block_number: receipt.blockNumber,
-      gas_used: receipt.gasUsed.toString(),
+      gas_used: receipt.gasUsed ? receipt.gasUsed.toString() : '0',
       from: receipt.from,
       to: receipt.to,
       status: receipt.status === 1 ? 'Success' : 'Failed'
@@ -52,8 +52,10 @@ export const signDocument = async (
 
     // error diambil dari blockchain
     if (
-      error.message?.includes('already registered') ||
-      error.reason?.includes('terdaftar')
+      error.message?.includes(
+        'Tasdiqi: Dokumen sudah terdaftar di Blockchain.'
+      ) ||
+      error.reason?.includes('Tasdiqi: Validasi tidak sah, Validator salah!')
     ) {
       sendError(
         res,
