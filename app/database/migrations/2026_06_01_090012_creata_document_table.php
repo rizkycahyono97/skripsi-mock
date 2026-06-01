@@ -16,12 +16,17 @@ return new class extends Migration
             $table->uuid('id')->primary();
 
             $table->string('document_number')->unique();
-            $table->string('document_type');
+            $table->enum('document_type', [
+                'ijazah',
+                'transkrip-nilai',
+                'surat-keterangan-lulus',
+                'sertifikat-kompetensi',
+            ]);
 
-            $table->string('student_name');
-            $table->string('student_nim');
+            $table->string('title');
 
             $table->date('issued_date');
+            $table->json('metadata');
 
             $table->string('identity_hash', 66);
             $table->string('file_hash', 66);
@@ -35,13 +40,12 @@ return new class extends Migration
             $table->enum('status', [
                 'draft',
                 'pending',
-                'registered',
+                'signed',
                 'failed',
             ])->default('draft');
 
             $table->timestamps();
 
-            $table->index('student_nim');
             $table->index('document_type');
             $table->index('status');
         });

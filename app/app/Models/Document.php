@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['document_number', 'document_type',
-    'student_name',
-    'student_nim',
+    'title',
     'issued_date',
+    'metadata',
     'identity_hash',
     'file_hash',
     'verification_code',
@@ -24,6 +24,7 @@ class Document extends Model
 
     protected $casts = [
         'issued_date' => 'date',
+        'metadata' => 'array',
     ];
 
     public function creator(): BelongsTo
