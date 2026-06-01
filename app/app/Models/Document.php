@@ -39,7 +39,7 @@ class Document extends Model
 
     public function blockchainTransaction(): HasOne
     {
-        return $this->hasOne(blockchainTransaction::class);
+        return $this->hasOne(BlockchainTransaction::class);
     }
 
     public function auditLogs(): HasMany
