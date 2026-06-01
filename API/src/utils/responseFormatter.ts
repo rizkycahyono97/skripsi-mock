@@ -1,17 +1,12 @@
 import { Response } from 'express';
 
-interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   success: boolean;
+  code: string | number;
   message: string;
   data: T | null;
-  timestamp: string;
-}
-
-interface ApiErrorResponse {
-  success: boolean;
-  message: string;
-  error_detail: any;
-  code: string;
+  error?: any;
+  error_detail?: any;
   timestamp: string;
 }
 
@@ -22,6 +17,7 @@ export const sendSuccess = <T>(
   statusCode: number = 200
 ): Response => {
   const responseBody: ApiResponse<T> = {
+    code: statusCode,
     success: true,
     message,
     data,
@@ -35,14 +31,16 @@ export const sendError = (
   res: Response,
   message: string,
   errorDetail: any = null,
-  errorMessage = 'INTERNAL_SERVER_ERROR',
+  errorMessage: string | number = 'INTERNAL_SERVER_ERROR',
   statusCode = 500
 ): Response => {
-  const errorResponseBody: ApiErrorResponse = {
+  const errorResponseBody: ApiResponse = {
+    code: statusCode,
     success: false,
     message,
-    error_detail: errorDetail,
-    code: errorMessage,
+    error: errorMessage,
+    error_detail: errorDetail ? errorDetail.toString() : null,
+    data: null,
     timestamp: new Date().toISOString()
   };
 
