@@ -1,7 +1,8 @@
 import { Head } from '@inertiajs/react';
 import { MoreVertical, Download, Plus } from 'lucide-react';
 import React from 'react';
-import Pagination from '@/components/pagination';
+import DocumentHeader from '@/components/document/document-header';
+import Pagination from '@/components/global/pagination';
 import { index } from '@/routes/documents';
 // import type { Auth } from '@/types';
 
@@ -17,40 +18,7 @@ export default function Index({ documents }: { documents: any }) {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-6 flex flex-col items-center justify-between gap-4 rounded-lg bg-white p-4 shadow-sm sm:flex-row dark:bg-gray-800">
-                        {/* Area Filter & Search */}
-                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                            <input
-                                type="text"
-                                placeholder="Cari dokumen, NIM, dll..."
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:w-64 sm:text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
-                            />
-                            <div className="flex gap-2">
-                                <select className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                                    <option value="">Semua Tipe</option>
-                                    <option value="ijazah">Ijazah</option>
-                                    <option value="transkrip">
-                                        Transkrip Nilai
-                                    </option>
-                                </select>
-                                <select className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                                    <option value="">Semua Status</option>
-                                    <option value="draft">Draft</option>
-                                    <option value="signed">Signed</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Area Tombol Aksi */}
-                        <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
-                            <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-800">
-                                <Download className="mr-2 h-4 w-4" /> Export CSV
-                            </button>
-                            <button className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-offset-gray-800">
-                                <Plus className="mr-2 h-4 w-4" /> Tambah
-                            </button>
-                        </div>
-                    </div>
+                    <DocumentHeader totalDocuments={documents.total} />
 
                     {/* Tabel Utama */}
                     <div className="overflow-hidden bg-white text-gray-900 shadow-sm sm:rounded-lg dark:bg-gray-800 dark:text-gray-100">

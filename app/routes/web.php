@@ -10,6 +10,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Documents
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/upload', [DocumentController::class, 'upload'])->name('documents.upload');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+
 });
 
 require __DIR__.'/settings.php';
