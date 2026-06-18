@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
-import DocumentHeader from '@/components/document/document-header';
 import DocumentTable from '@/components/document/document-table';
+import PageHeader from '@/components/global/page-header';
 import Pagination from '@/components/global/pagination';
 import { Card, CardContent } from '@/components/ui/card';
 import { index } from '@/routes/documents';
@@ -12,7 +12,13 @@ export default function Index({ documents }: { documents: any }) {
 
             <div className="py-12">
                 <div className="mx-auto sm:px-6 lg:px-8">
-                    <DocumentHeader totalDocuments={documents.total} />
+                    <PageHeader
+                        title="Documents"
+                        description="Kelola, upload, dan validasi dokumen anda disini."
+                        totalDocuments={documents.total}
+                        actionText="Upload Dokumen"
+                        actionLink="/documents/upload"
+                    />
 
                     <Card>
                         <CardContent className="p-0 sm:p-6">
