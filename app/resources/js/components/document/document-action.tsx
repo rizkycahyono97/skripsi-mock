@@ -17,9 +17,9 @@ export default function DocumentActions({ doc }: Props) {
         router.visit(`/documents/${doc.document_uuid}`);
     };
 
-    const handleValidate = () => {
-        console.log('Validasi (Arsip)', doc.id);
-    };
+    // const handleValidate = () => {
+    //     console.log('Validasi (Arsip)', doc.id);
+    // };
 
     const handleDelete = () => {
         console.log('Hapus Dokumen', doc.id);
@@ -36,9 +36,9 @@ export default function DocumentActions({ doc }: Props) {
                 <DropdownMenuItem onClick={handleViewDetail}>
                     Lihat Detail
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleValidate}>
+                {/* <DropdownMenuItem onClick={handleValidate}>
                     Validasi (Arsip)
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem
                     onClick={handleDelete}
                     className="text-red-600 dark:text-red-400"
