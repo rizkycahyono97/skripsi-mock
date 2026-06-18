@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DocumentStoreRequest;
 use App\Models\Document;
 use App\Models\DocumentFile;
 use Illuminate\Http\Request;
@@ -40,56 +41,74 @@ class DocumentController extends Controller
         return Inertia::render('Documents/upload');
     }
 
-    public function store(Request $request)
+    public function store(DocumentStoreRequest $request)
     {
+        // dd($request->toArray());
         DB::transaction(function () use ($request) {
-            // dd($request);
-            $uploadedFile = $request->file('file');
 
-            $path = $uploadedFile->store(
-                'document/original',
-                'public'
-            );
+            try {
+                // dd($request);
+                $uploadedFile = $request->file('file');
 
-            $fileHash = hash_file(
-                'sha256',
-                $uploadedFile->getRealPath()
-            );
+                $path = $uploadedFile->store(
+                    'document/original',
+                    'public'
+                );
 
-            $identifyHash = hash(
-                'sha256',
-                json_encode(
-                    [$request->metadata, $request->document_number],
-                    JSON_UNESCAPED_UNICODE
-                )
-            );
+                // dijadikan array
+                $metadata = collect($request->metadata)
+                    ->pluck('value', 'key')
+                    ->toArray();
+                ksort($metadata);
 
-            $identifyHash = hash(
-                'sha256',
-                json_encode(
-                    $request->document_number,
-                    JSON_UNESCAPED_UNICODE
-                )
-            );
+                // dd($metadata);
 
-            $document = Document::create([
-                'document_number' => $request->document_number,
-                'document_type' => $request->document_type,
-                'title' => $request->title,
-                'issued_date' => $request->issued_date,
-                'metadata' => $request->metadata,
-                'identity_hash' => $identifyHash,
-                'file_hash' => $fileHash,
-                'verification_code' => Str::uuid(),
-                'created_by' => Auth::id(),
-                'status' => 'draft',
-            ]);
+                // data yang diisi manual ketika upload pdf
+                $identityData = [
+                    'document_number' => $request->document_number,
+                    'document_type' => $request->document_type,
+                    'issued_date' => $request->issued_date,
+                    'metadata' => $metadata,
+                ];
 
-            DocumentFile::create([
-                'document_id' => $document->id,
-                'original_file' => $path,
-                'file_size' => $uploadedFile->getSize(),
-            ]);
+                $identityHash = hash(
+                    'sha256',
+                    json_encode(
+                        $identityData,
+                        JSON_UNESCAPED_UNICODE
+                    )
+                );
+
+                // file asli pdf
+                $fileHash = hash_file(
+                    'sha256',
+                    $uploadedFile->getRealPath()
+                );
+
+                $document = Document::create([
+                    'document_number' => $request->document_number,
+                    'document_type' => $request->document_type,
+                    'title' => $request->title,
+                    'issued_date' => $request->issued_date,
+                    'metadata' => $request->metadata,
+                    'identity_hash' => $identityHash,
+                    'file_hash' => $fileHash,
+                    'verification_code' => Str::uuid(),
+                    'created_by' => Auth::id(),
+                    'status' => 'draft',
+                ]);
+
+                DocumentFile::create([
+                    'document_id' => $document->id,
+                    'original_file' => $path,
+                    'file_size' => $uploadedFile->getSize(),
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+
+                return back()->withInput()->with('error', 'Gagal mengupload dokumen');
+            }
+
         });
 
         return redirect()->route('documents.index')->with('success', 'Dokumen berhasil diUpload');
