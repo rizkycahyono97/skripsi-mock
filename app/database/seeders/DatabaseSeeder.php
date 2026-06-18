@@ -44,6 +44,7 @@ class DatabaseSeeder extends Seeder
 
             $document = Document::create([
                 'document_number' => 'DOC/ARSIP/'.date('Y').'/'.str_pad($i + 1, 4, '0', STR_PAD_LEFT),
+                'document_uuid' => Str::uuid(),
                 'document_type' => Str::slug($faker->randomElement(($documentTypes))),
                 'title' => $documentType.' - '.$userName,
                 'issued_date' => $faker->dateTimeBetween('-1 years', 'now')->format('Y-m-d'),

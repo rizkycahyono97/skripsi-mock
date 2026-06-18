@@ -15,7 +15,7 @@ return new class extends Migration
 
             $table->id();
 
-            $table->uuid('document_id');
+            // $table->uuid('document_id');
 
             $table->string('original_file');
             $table->string('verified_file')->nullable();
@@ -24,9 +24,8 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->foreign('document_id')
-                ->references('id')
-                ->on('documents')
+            $table->foreignId('document_id')
+                ->constrained('documents')
                 ->cascadeOnDelete();
         });
     }

@@ -31,14 +31,14 @@ class DocumentController extends Controller
             ->latest()
             ->paginate(10);
 
-        return Inertia::render('Documents/Index', [
+        return Inertia::render('documents/index', [
             'documents' => $documents,
         ]);
     }
 
     public function upload(Request $request): Response
     {
-        return Inertia::render('Documents/upload');
+        return Inertia::render('documents/upload');
     }
 
     public function store(DocumentStoreRequest $request)
@@ -87,6 +87,7 @@ class DocumentController extends Controller
 
                 $document = Document::create([
                     'document_number' => $request->document_number,
+                    'document_uuid' => Str::uuid(),
                     'document_type' => $request->document_type,
                     'title' => $request->title,
                     'issued_date' => $request->issued_date,
@@ -112,5 +113,21 @@ class DocumentController extends Controller
         });
 
         return redirect()->route('documents.index')->with('success', 'Dokumen berhasil diUpload');
+    }
+
+    public function show($document_uuid)
+    {
+        $document = Document::with([
+            'creator',
+            'file',
+            'blockchainTransaction',
+            'auditLogs.user',
+        ])
+            ->where('document_uuid', $document_uuid)
+            ->firstOrFail();
+
+        return Inertia::render('documents/show', [
+            'document' => $document,
+        ]);
     }
 }

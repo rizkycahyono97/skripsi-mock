@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Override;
 
 #[Fillable([
     'document_number',
+    'document_uuid',
     'document_type',
     'title',
     'issued_date',
@@ -28,6 +30,12 @@ class Document extends Model
         'issued_date' => 'date',
         'metadata' => 'array',
     ];
+
+    #[Override]
+    public function uniqueIds()
+    {
+        return ['document_uuid'];
+    }
 
     public function creator(): BelongsTo
     {

@@ -19,18 +19,15 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->uuid('document_id')->nullable();
-
             $table->string('action');
 
             $table->json('payload')->nullable();
 
             $table->timestamps();
 
-            $table->foreign('document_id')
-                ->references('id')
-                ->on('documents')
-                ->nullOnDelete();
+            $table->foreignId('document_id')
+                ->constrained('documents')
+                ->cascadeOnDelete();
 
             $table->index('action');
         });

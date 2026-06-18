@@ -15,8 +15,6 @@ return new class extends Migration
 
             $table->id();
 
-            $table->uuid('document_id');
-
             $table->string('tx_hash')->unique();
 
             $table->unsignedBigInteger('block_number');
@@ -29,9 +27,8 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->foreign('document_id')
-                ->references('id')
-                ->on('documents')
+            $table->foreignId('document_id')
+                ->constrained('documents')
                 ->cascadeOnDelete();
         });
     }
