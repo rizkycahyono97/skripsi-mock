@@ -7,6 +7,7 @@ use App\Models\DocumentFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -79,7 +80,7 @@ class DocumentController extends Controller
                 'metadata' => $request->metadata,
                 'identity_hash' => $identifyHash,
                 'file_hash' => $fileHash,
-                'verification_code' => Auth::id(),
+                'verification_code' => Str::uuid(),
                 'created_by' => Auth::id(),
                 'status' => 'draft',
             ]);

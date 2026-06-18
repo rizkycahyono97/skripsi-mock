@@ -1,5 +1,3 @@
-import { EmptyState } from '../global/empty-state';
-import DocumentTableRow from './document-table-row';
 import {
     Table,
     TableBody,
@@ -7,6 +5,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { EmptyState } from '../global/empty-state';
+import DocumentTableRow from './document-table-row';
 
 interface Props {
     documents: any[];
