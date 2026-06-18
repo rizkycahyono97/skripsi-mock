@@ -4,7 +4,7 @@ import { Users } from 'lucide-react';
 interface HeaderProps {
     title: string;
     description: string;
-    totalDocuments: number;
+    totalDocuments?: number;
     actionLink?: string;
     actionText?: string;
     onAction?: () => void;
@@ -33,12 +33,16 @@ export default function PageHeader({
                     <p className="max-w-2xl text-base leading-relaxed text-gray-500 dark:text-slate-400">
                         {description}
                     </p>
-                    <div className="mt-2 flex items-center text-sm font-medium text-muted-foreground">
-                        <Users className="mr-1.5 h-4 w-4" />
-                        <span>
-                            Total: {totalDocuments.toLocaleString('id-ID')}
-                        </span>
-                    </div>
+                    {totalDocuments ? (
+                        <div className="mt-2 flex items-center text-sm font-medium text-muted-foreground">
+                            <Users className="mr-1.5 h-4 w-4" />
+                            <span>
+                                Total: {totalDocuments.toLocaleString('id-ID')}
+                            </span>
+                        </div>
+                    ) : (
+                        <div></div>
+                    )}
                 </div>
 
                 {/* Action Section */}
