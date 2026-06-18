@@ -18,6 +18,7 @@ class DocumentController extends Controller
     {
         $documents = Document::select([
             'id',
+            'document_uuid',
             'document_number',
             'title',
             'document_type',

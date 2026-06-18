@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import { MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +14,7 @@ interface Props {
 
 export default function DocumentActions({ doc }: Props) {
     const handleViewDetail = () => {
-        console.log('Lihat Detail', doc.id);
+        router.visit(`/documents/${doc.document_uuid}`);
     };
 
     const handleValidate = () => {
