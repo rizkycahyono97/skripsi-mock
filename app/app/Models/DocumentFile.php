@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'original_file',
     'verified_file',
-    'file_size', ])]
+    'file_size',
+    'document_id'])]
 class DocumentFile extends Model
 {
     public function document(): BelongsTo

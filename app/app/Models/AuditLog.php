@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable('user_id',
     'document_id',
     'action',
-    'payload', )]
+    'payload',
+    'document_id')]
 class AuditLog extends Model
 {
     protected $casts = [

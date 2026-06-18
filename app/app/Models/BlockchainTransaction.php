@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'block_number',
     'contract_address',
     'signer_address',
-    'confirmed_at', )]
+    'confirmed_at',
+    'document_id')]
 class BlockchainTransaction extends Model
 {
     protected $casts = [

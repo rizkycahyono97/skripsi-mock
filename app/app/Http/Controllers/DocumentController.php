@@ -44,10 +44,9 @@ class DocumentController extends Controller
 
     public function store(DocumentStoreRequest $request)
     {
-        // dd($request->toArray());
-        DB::transaction(function () use ($request) {
+        try {
+            DB::transaction(function () use ($request) {
 
-            try {
                 // dd($request);
                 $uploadedFile = $request->file('file');
 
@@ -100,18 +99,19 @@ class DocumentController extends Controller
                     'status' => 'draft',
                 ]);
 
+                // dd($path);
+
                 DocumentFile::create([
                     'document_id' => $document->id,
                     'original_file' => $path,
                     'file_size' => $uploadedFile->getSize(),
                 ]);
-            } catch (\Throwable $e) {
-                report($e);
+            });
+        } catch (\Throwable $e) {
+            report($e);
 
-                return back()->withInput()->with('error', 'Gagal mengupload dokumen');
-            }
-
-        });
+            return back()->withInput()->with('error', 'Gagal mengupload dokumen: '.$e->getMessage());
+        }
 
         return redirect()->route('documents.index')->with('success', 'Dokumen berhasil diUpload');
     }
@@ -126,6 +126,8 @@ class DocumentController extends Controller
         ])
             ->where('document_uuid', $document_uuid)
             ->firstOrFail();
+
+        // dd($document->toArray());
 
         return Inertia::render('documents/show', [
             'document' => $document,
