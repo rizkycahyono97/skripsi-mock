@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ValidationService } from './validation.service';
 import {
   WinstonModule,
@@ -6,6 +6,7 @@ import {
 } from 'nest-winston';
 import * as winston from 'winston';
 import { ConfigModule } from '@nestjs/config';
+import { ApiKeyMiddleware } from './api-key.middleware';
 
 @Global()
 @Module({
@@ -50,4 +51,8 @@ import { ConfigModule } from '@nestjs/config';
   providers: [ValidationService],
   exports: [ValidationService],
 })
-export class CommonModule {}
+export class CommonModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ApiKeyMiddleware).forRoutes('/api/*');
+  }
+}
