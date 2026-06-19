@@ -12,7 +12,7 @@ export default function Show({ document }: { document: any }) {
         <div className="min-h-screen bg-background py-8">
             <Head title={`Dokumen: ${document.title}`} />
 
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8">
                 <PageHeader
                     title="Documents Show"
                     description="Kirim dokumen ke blockchain dan lihat detail dokumen"
@@ -28,7 +28,7 @@ export default function Show({ document }: { document: any }) {
 
                     <div className="space-y-6">
                         <DocumentFilesCard files={document.file} />
-                        <DocumentAuditLogCard auditLogs={document.audit_logs} />
+                        {/* <DocumentAuditLogCard auditLogs={document.audit_logs} /> */}
                     </div>
                 </div>
             </div>

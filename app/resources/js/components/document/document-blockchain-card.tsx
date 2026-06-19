@@ -15,7 +15,7 @@ export default function DocumentBlockchainCard({ document }: Props) {
     const handleSendToBlockchain = () => {
         setSending(true);
         router.post(
-            `/documents/${document.document_uuid}/blockchain`,
+            `/documents/${document.document_uuid}/sign-blockchain`,
             {},
             {
                 preserveScroll: true,

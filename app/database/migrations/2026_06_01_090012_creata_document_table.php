@@ -42,6 +42,7 @@ return new class extends Migration
             $table->enum('status', [
                 'draft',
                 'pending',
+                'registered',
                 'signed',
                 'failed',
             ])->default('draft');
