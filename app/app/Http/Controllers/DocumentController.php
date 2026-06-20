@@ -150,9 +150,16 @@ class DocumentController extends Controller
             'file_hash' => $document->file_hash,
         ];
 
+        // dd($payload);
+
         try {
             $response = Http::timeout(30)
-                ->post(config('api.blockchain.url').'/sign', $payload);
+                ->withHeaders([
+                    'x-api-key' => config('api.blockchain.key'),
+                ])
+                ->post(config('api.blockchain.url').'/documents/sign', $payload);
+
+            dd($response);
 
             if ($response->successful()) {
                 $responseData = $response->json();

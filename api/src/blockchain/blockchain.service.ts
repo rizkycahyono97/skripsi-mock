@@ -47,11 +47,13 @@ export class BlockchainService implements OnModuleInit {
     const abiJson = fs.readFileSync(abiPath, 'utf8');
     this.tasdiqiAbi = JSON.parse(abiJson).abi;
 
-    const rpcUrl = this.configService.get<string>('RPC_URL');
-    const chainIdStr = this.configService.get<string>('CHAIN_ID');
+    const rpcUrl = this.configService.get<string>('BLOCKCHAIN_RPC_URL');
+    const chainIdStr = this.configService.get<string>('BLOCKCHAIN_CHAIN_ID');
 
     if (!rpcUrl || !chainIdStr) {
-      throw new Error('RPC_URL atau CHAIN_ID belum didefinisikan di .env');
+      throw new Error(
+        'BLOCKCHAIN_RPC_URL atau BLOCKCHAIN_CHAIN_ID belum didefinisikan di .env',
+      );
     }
 
     this.provider = new ethers.JsonRpcProvider(
@@ -65,10 +67,12 @@ export class BlockchainService implements OnModuleInit {
     this.logger.info(
       `BlockchainService.getContract[${JSON.stringify(signer)}]`,
     );
-    const contractAddress = this.configService.get<string>('CONTRACT_ADDRESS');
+    const contractAddress = this.configService.get<string>(
+      'BLOCKCHAIN_CONTRACT_ADDRESS',
+    );
     if (!contractAddress) {
-      this.logger.info('CONTRACT_ADDRESS tidak ditemukan di .env');
-      throw new Error('CONTRACT_ADDRESS tidak ditemukan di .env');
+      this.logger.info('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
+      throw new Error('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
     }
 
     return new ethers.Contract(contractAddress, this.tasdiqiAbi, signer);
@@ -87,7 +91,9 @@ export class BlockchainService implements OnModuleInit {
         request,
       );
 
-    const validatorPk = this.configService.get<string>('VALIDATOR_PRIVATE_KEY');
+    const validatorPk = this.configService.get<string>(
+      'BLOCKCHAIN_VALIDATOR_PRIVATE_KEY',
+    );
     if (!validatorPk) {
       throw new Error(
         'Validator private key not found di environment variables',
