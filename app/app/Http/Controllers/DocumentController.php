@@ -145,9 +145,9 @@ class DocumentController extends Controller
         }
 
         $payload = [
-            'document_number' => $document->document_number,
-            'identity_hash' => $document->identity_hash,
-            'file_hash' => $document->file_hash,
+            'documentNumber' => $document->document_number,
+            'identityHash' => $document->identity_hash,
+            'fileHash' => $document->file_hash,
         ];
 
         // dd($payload);

@@ -7,8 +7,8 @@ export const domain = {
 
 export const types = {
   Document: [
-    { name: 'document_number', type: 'string' },
-    { name: 'identity_hash', type: 'bytes32' },
-    { name: 'file_hash', type: 'bytes32' },
+    { name: 'documentNumber', type: 'string' },
+    { name: 'identityHash', type: 'bytes32' },
+    { name: 'fileHash', type: 'bytes32' },
   ],
 };
