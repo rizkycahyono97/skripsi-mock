@@ -75,7 +75,7 @@ class DocumentController extends Controller
                     'metadata' => $metadata,
                 ];
 
-                $identityHash = hash(
+                $identityHash = '0x'.hash(
                     'sha256',
                     json_encode(
                         $identityData,
@@ -84,7 +84,7 @@ class DocumentController extends Controller
                 );
 
                 // file asli pdf
-                $fileHash = hash_file(
+                $fileHash = '0x'.hash_file(
                     'sha256',
                     $uploadedFile->getRealPath()
                 );
@@ -159,7 +159,7 @@ class DocumentController extends Controller
                 ])
                 ->post(config('api.blockchain.url').'/documents/sign', $payload);
 
-            dd($response);
+            // dd($response);
 
             if ($response->successful()) {
                 $responseData = $response->json();
