@@ -4,15 +4,21 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Contract, JsonRpcProvider, Signer, Wallet, ethers } from 'ethers';
+import {
+  Contract,
+  ContractTransactionResponse,
+  JsonRpcProvider,
+  Signer,
+  TransactionReceipt,
+  Wallet,
+  ethers,
+} from 'ethers';
 import { domain, types } from './constant/eip712.constants';
+import { SignDocumentRequest } from 'src/model/document.model';
+import { BlockchainValidation } from './blockchain.validation';
+import { ValidationService } from 'src/common/validation.service';
+import { BlockchainReceiptResponse } from 'src/model/blockchain.model';
 // import * as tasdiqiAbiJson from './TasdiqiABI.json';
-
-interface DocumentPayload {
-  documentNumber: string;
-  identityHash: string;
-  fileHash: string;
-}
 
 @Injectable()
 export class BlockchainService implements OnModuleInit {
@@ -22,10 +28,13 @@ export class BlockchainService implements OnModuleInit {
   constructor(
     private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
+    private validationService: ValidationService,
   ) {}
 
   onModuleInit() {
-    this.logger.info('blockchain.service[inisialisasi konfigurasi blockchain]');
+    this.logger.info(
+      'BlockchainService.onModuleInit[inisialisasi konfigurasi blockchain]',
+    );
 
     const abiPath = path.join(process.cwd(), 'abi', 'TasdiqiABI.json');
     if (!fs.existsSync(abiPath)) {
@@ -53,6 +62,9 @@ export class BlockchainService implements OnModuleInit {
   }
 
   public getContract(signer: Signer): Contract {
+    this.logger.info(
+      `BlockchainService.getContract[${JSON.stringify(signer)}]`,
+    );
     const contractAddress = this.configService.get<string>('CONTRACT_ADDRESS');
     if (!contractAddress) {
       this.logger.info('CONTRACT_ADDRESS tidak ditemukan di .env');
@@ -62,18 +74,25 @@ export class BlockchainService implements OnModuleInit {
     return new ethers.Contract(contractAddress, this.tasdiqiAbi, signer);
   }
 
-  async signAndIssueDocument(payload: DocumentPayload): Promise<any> {
-    const validatorPk = this.configService.get<string>('VALIDATOR_PRIVATE_KEY');
+  async signAndIssueDocument(
+    request: SignDocumentRequest,
+  ): Promise<BlockchainReceiptResponse> {
+    this.logger.info(
+      `BlockchainService.signAndIssueDocument[${JSON.stringify(request)}]`,
+    );
 
+    const blockchainRequest =
+      this.validationService.validate<SignDocumentRequest>(
+        BlockchainValidation.SIGN,
+        request,
+      );
+
+    const validatorPk = this.configService.get<string>('VALIDATOR_PRIVATE_KEY');
     if (!validatorPk) {
       throw new Error(
         'Validator private key not found di environment variables',
       );
     }
-
-    this.logger.info(
-      `[signAndIssueDocument] Memulai proses penandatanganan payload: ${JSON.stringify(payload)}`,
-    );
 
     try {
       const wallet = new Wallet(validatorPk, this.provider);
@@ -82,31 +101,39 @@ export class BlockchainService implements OnModuleInit {
       const signature: string = await wallet.signTypedData(
         domain,
         types,
-        payload,
+        blockchainRequest,
       );
       this.logger.info(
-        `[signAndIssueDocument] Signature berhasil dibuat: ${signature}`,
+        `BlockchainService.signAndIssueDocument[Signature berhasil dibuat: ${signature}]`,
       );
 
-      this.logger.debug('Mengirim transaksi ke smart contract...');
-
-      const tx = await contract.issueDocument(payload, signature);
+      const tx = (await contract.issueDocument(
+        blockchainRequest,
+        signature,
+      )) as ContractTransactionResponse;
 
       this.logger.info(
-        `[signAndIssueDocument] Transaksi terkirim. Tx Hash: ${tx.hash}`,
+        `BlockchainService.signAndIssueDocument[Transaksi terkirim. Tx Hash: ${tx.hash}]`,
       );
 
-      const receipt = await tx.wait();
+      const receipt = (await tx.wait()) as TransactionReceipt;
 
       this.logger.info(
-        `[signAndIssueDocument] Transaksi Sukses, Block #${receipt.blockNumber}! Gas Used: ${receipt.gasUsed.toString()}`,
+        `BlockchainService.signAndIssueDocument[Transaksi Sukses, Block #${receipt.blockNumber}! Gas Used: ${receipt.gasUsed.toString()}]`,
       );
 
-      return receipt;
+      return {
+        transactionHash: receipt.hash,
+        blockNumber: Number(receipt.blockNumber),
+        gasUsed: receipt.gasUsed.toString(),
+        status: receipt.status === 1 ? 'SUCCESS' : 'FAILED',
+        from: receipt.from,
+        to: receipt.to ?? undefined,
+      };
     } catch (error) {
       const err = error as Error;
       this.logger.error(
-        `[signAndIssueDocument] Transaksi gagal: ${err.message}`,
+        `BlockchainService.signAndIssueDocument[Transaksi gagal: ${err.message}]`,
         err.stack,
       );
       throw error;
