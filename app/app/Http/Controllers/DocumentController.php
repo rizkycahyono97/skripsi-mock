@@ -160,40 +160,43 @@ class DocumentController extends Controller
                 ->post(config('api.blockchain.url').'/documents/sign', $payload);
 
             // dd($response);
+            if ($response->failed()) {
+                $errorMsg = $response->json('message') ?? 'Terjadi kesalahan pada API';
 
-            if ($response->successful()) {
-                $responseData = $response->json();
-
-                DB::transaction(function () use ($document, $responseData) {
-                    BlockchainTransaction::create([
-                        'document_id' => $document->id,
-                        'tx_hash' => $responseData['tx_hash'] ?? null,
-                        'contract_address' => $responseData['contract_address'] ?? null,
-                        'block_number' => $responseData['block_number'] ?? null,
-                        'signer_address' => $responseData['signer_address'] ?? null,
-                    ]);
-
-                    $document->update(['status' => 'registered']);
-
-                    AuditLog::create([
-                        'user_id' => Auth::id(),
-                        'document_id' => $document->id,
-                        'action' => 'register_blockchain',
-                        'payload' => $responseData,
-                    ]);
-                });
-
-                return back()->with('success', 'Document berhasil di masukan ke Blockhain');
-            } else {
-                throw new Exception('Reponse Blockchain tidak valid');
+                return back()->withErrors([
+                    'api_blockchain_error' => $errorMsg,
+                ]);
             }
 
-            $document->update(['status' => 'failed']);
+            $responseData = $response->json();
 
-            return back()->with('error', 'Api Blockchain gagal merespon'.$response->body());
+            $result = $responseData['data'] ?? [];
+
+            DB::transaction(function () use ($document, $result) {
+                BlockchainTransaction::create([
+                    'document_id' => $document->id,
+                    'tx_hash' => $responseData['tx_hash'] ?? null,
+                    'contract_address' => $responseData['contract_address'] ?? null,
+                    'block_number' => $responseData['block_number'] ?? null,
+                    'signer_address' => $responseData['signer_address'] ?? null,
+                ]);
+
+                $document->update(['status' => 'registered']);
+
+                AuditLog::create([
+                    'user_id' => Auth::id(),
+                    'document_id' => $document->id,
+                    'action' => 'register_blockchain',
+                    'payload' => $result,
+                ]);
+            });
+
+            return back()->with('success', 'Document berhasil di masukan ke Blockhain');
 
         } catch (Exception $e) {
             report($e);
+
+            $document->update(['status' => 'failed']);
 
             return back()->with('error', 'Terjadi kesalahan sistem saat menghubungi Blockchain.');
         }
