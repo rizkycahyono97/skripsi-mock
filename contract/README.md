@@ -134,6 +134,7 @@ cast call <CONTRACT_ADDRESS> "owner()" --rpc-url $LOCAL_RPC_URL
 
 1. **Foundry**: Foundry untuk contract development. docs [foundry](https://www.getfoundry.sh/)
 2. **OpenZeppelin v4.9**: untuk konfigurasi EIP-712. docs [OpenZeppelin](https://docs.openzeppelin.com/contracts/4.x/api/interfaces)
+3. **Solidity ^0.8.19**: versi bahasa pemograman solidity.
 
 ---
 
