@@ -7,15 +7,21 @@ use App\Models\AuditLog;
 use App\Models\BlockchainTransaction;
 use App\Models\Document;
 use App\Models\DocumentFile;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use setasign\Fpdi\Fpdi;
 
 class DocumentController extends Controller
 {
@@ -168,8 +174,15 @@ class DocumentController extends Controller
             }
 
             $responseData = $response->json();
-
             $result = $responseData['data'] ?? [];
+
+            $newFilePath = null;
+            if (isset($result['documentKey'])) {
+                $newFilePath = $this->generateSignedPdfWithQr($document, $result['documentKey']);
+                if (! $newFilePath) {
+                    return back()->withErrors(['pdf_error' => 'Gagal memproses generate qr code di pdf']);
+                }
+            }
 
             DB::transaction(function () use ($document, $result) {
                 BlockchainTransaction::create([
@@ -205,6 +218,90 @@ class DocumentController extends Controller
             $document->update(['status' => 'failed']);
 
             return back()->with('error', 'Terjadi kesalahan sistem saat menghubungi Blockchain.');
+        }
+    }
+
+    private function generateSignedPdfWithQr(Document $document, string $documentKey): ?string
+    {
+        try {
+            $qrDir = storage_path('app/public/document/qr');
+            $signedDir = storage_path('app/public/document/signed');
+
+            if (! file_exists($qrDir)) {
+                mkdir($qrDir, 0755, true);
+            }
+            if (! file_exists($signedDir)) {
+                mkdir($signedDir, 0755, true);
+            }
+
+            $qrCodeName = 'qr_'.$document->id.'_'.time().'.png';
+            $qrCodePath = $qrDir.'/'.$qrCodeName;
+            $verificationUrl = config('app.url').'/verify/'.$documentKey;
+
+            // rendering QR
+            $renderer = new ImageRenderer(
+                new RendererStyle(150, 1),
+                new ImagickImageBackEnd
+            );
+
+            $writer = new Writer($renderer);
+            $writer->writeFile($verificationUrl, $qrCodePath);
+
+            // konversi 8bit
+            $img = imagecreatefrompng($qrCodePath);
+            imagepng($img, $qrCodePath);
+            imagedestroy($img);
+
+            $cleanedFilePath = ltrim($document->file->original_file, '/');
+            $originalPdfPath = storage_path('app/public/'.$cleanedFilePath);
+
+            if (! file_exists($originalPdfPath) || is_dir($originalPdfPath)) {
+                Log::error('FPDI Error: File tidak valid. Path yang dicari: '.$originalPdfPath);
+                throw new Exception('File PDF asli tidak valid atau tidak ditemukan di path: '.$originalPdfPath);
+            }
+
+            $pathInfo = pathinfo($cleanedFilePath);
+            $extension = $pathInfo['extension'] ?? 'pdf';
+
+            // signed pdf directory
+            $newRelativePath = 'document/signed/'.$pathInfo['filename'].'_signed.'.$extension;
+            $newPdfPath = storage_path('app/public/'.$newRelativePath);
+
+            // inject qr ke pdf
+            $pdf = new Fpdi;
+            $pageCount = $pdf->setSourceFile($originalPdfPath);
+
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                $templateId = $pdf->importPage($pageNo);
+                $size = $pdf->getTemplateSize($templateId);
+
+                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $pdf->useTemplate($templateId);
+
+                if ($pageNo === $pageCount) {
+                    $qrWidth = 30;
+                    $qrHeight = 30;
+                    $margin = 15;
+
+                    $xAxis = $size['width'] - $qrWidth - $margin;
+                    $yAxis = $size['height'] - $qrHeight - $margin;
+
+                    $pdf->Image($qrCodePath, $xAxis, $yAxis, $qrWidth, $qrHeight);
+                }
+            }
+
+            $pdf->Output($newPdfPath, 'F');
+
+            if (file_exists($qrCodePath)) {
+                unlink($qrCodePath);
+            }
+
+            return $newRelativePath;
+
+        } catch (Exception $e) {
+            report($e);
+
+            return null;
         }
     }
 }
