@@ -1,10 +1,15 @@
 <?php
 
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\VerifyController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
+// public
+Route::get('/verify/qr/{documentKey}', [VerifyController::class, 'verifyQr'])->name('documents.verify-qr');
+
+// private
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 

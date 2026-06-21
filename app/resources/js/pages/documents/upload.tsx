@@ -2,9 +2,9 @@ import { Head, useForm } from '@inertiajs/react';
 import React from 'react';
 
 import DocumentUploadForm from '@/components/document/document-upload-form';
+import PageHeader from '@/components/global/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import PageHeader from '@/components/global/page-header';
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({

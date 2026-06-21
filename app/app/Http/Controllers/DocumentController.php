@@ -193,7 +193,7 @@ class DocumentController extends Controller
                 }
             }
 
-            DB::transaction(function () use ($document, $result) {
+            DB::transaction(function () use ($document, $result, $newFilePath) {
                 BlockchainTransaction::create([
                     'document_id' => $document->id,
                     'tx_hash' => $result['transactionHash'] ?? null,
@@ -210,6 +210,18 @@ class DocumentController extends Controller
                 ]);
 
                 $document->update(['status' => 'registered']);
+
+                if ($newFilePath) {
+                    if ($document->file) {
+                        $document->file->update([
+                            'verified_file' => $newFilePath,
+                        ]);
+                    } else {
+                        $document->file()->create([
+                            'verified_file' => $newFilePath,
+                        ]);
+                    }
+                }
 
                 AuditLog::create([
                     'user_id' => Auth::id(),
@@ -245,7 +257,7 @@ class DocumentController extends Controller
 
             $qrCodeName = 'qr_'.$document->id.'_'.time().'.png';
             $qrCodePath = $qrDir.'/'.$qrCodeName;
-            $verificationUrl = config('app.url').'/verify/'.$documentKey;
+            $verificationUrl = config('app.url').'/verify/qr/'.$documentKey;
 
             // rendering QR
             $renderer = new ImageRenderer(
