@@ -57,8 +57,7 @@ contract Tasdiqi is EIP712, Ownable {
         bytes32 indexed identityHash,
         bytes32 indexed fileHash,
         string documentNumber,
-        address signer,
-        uint256 timestamp
+        address signer
     );
     /// @notice Event yang dipicu saat status otorisasi seorang validator berubah
     event ValidatorDocumentChanged(address indexed validator, bool status);
@@ -104,13 +103,15 @@ contract Tasdiqi is EIP712, Ownable {
             "Tasdiqi: Tanda tangan tidak sah"
         );
 
+        uint256 currentTime = block.timestamp;
+
         _documents[documentKey] = RegisteredDocument({
             documentKey: documentKey,
             documentNumber: doc.documentNumber,
             identityHash: doc.identityHash,
             fileHash: doc.fileHash,
             signer: signer,
-            registeredAt: block.timestamp
+            registeredAt: currentTime
         });
 
         emit DocumentIssued(
@@ -118,8 +119,7 @@ contract Tasdiqi is EIP712, Ownable {
             doc.identityHash,
             doc.fileHash,
             doc.documentNumber,
-            signer,
-            block.timestamp
+            signer
         );
     }
 

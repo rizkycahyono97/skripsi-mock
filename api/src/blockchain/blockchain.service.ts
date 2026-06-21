@@ -123,18 +123,37 @@ export class BlockchainService implements OnModuleInit {
       );
 
       const receipt = (await tx.wait()) as TransactionReceipt;
+      const block = await this.provider.getBlock(receipt.blockNumber);
 
       this.logger.info(
         `BlockchainService.signAndIssueDocument[Transaksi Sukses, Block #${receipt.blockNumber}! Gas Used: ${receipt.gasUsed.toString()}]`,
       );
 
+      // event contract
+      const eventLog = receipt.logs
+        .map((log) => {
+          try {
+            return contract.interface.parseLog(log);
+          } catch {
+            return null;
+          }
+        })
+        .find((parsed) => parsed?.name === 'DocumentIssued');
+
+      if (!eventLog) {
+        throw new Error('event DocumentIssued tidak ada');
+      }
+
       return {
         transactionHash: receipt.hash,
-        blockNumber: Number(receipt.blockNumber),
+        blockNumber: receipt.blockNumber,
+        blockHash: receipt.blockHash,
+        contractAddress: String(receipt.to),
+        documentKey: String(eventLog.args.documentKey),
+        signerAddress: String(eventLog.args.signer),
         gasUsed: receipt.gasUsed.toString(),
+        blockTimestamp: Number(block?.timestamp),
         status: receipt.status === 1 ? 'SUCCESS' : 'FAILED',
-        from: receipt.from,
-        to: receipt.to ?? undefined,
       };
     } catch (error) {
       const err = error as Error;

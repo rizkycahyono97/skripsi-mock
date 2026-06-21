@@ -159,7 +159,7 @@ class DocumentController extends Controller
                 ])
                 ->post(config('api.blockchain.url').'/documents/sign', $payload);
 
-            // dd($response);
+            // dd($response->json());
             if ($response->failed()) {
                 $errorMsg = $response->json('message') ?? 'Terjadi kesalahan pada API';
 
