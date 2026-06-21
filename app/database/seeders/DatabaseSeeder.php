@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'arsip@mail.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
+            'role' => 'arsip',
         ]);
 
         // $this->call([

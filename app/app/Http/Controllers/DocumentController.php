@@ -13,20 +13,21 @@ use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Inertia\Response;
 use setasign\Fpdi\Fpdi;
 
 class DocumentController extends Controller
 {
-    public function index(Request $request): Response
+    public function index()
     {
+        Gate::authorize('role', ['arsip']);
+
         $documents = Document::select([
             'id',
             'document_uuid',
@@ -48,13 +49,17 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function upload(Request $request): Response
+    public function upload()
     {
+        Gate::authorize('role', ['arsip']);
+
         return Inertia::render('documents/upload');
     }
 
     public function store(DocumentStoreRequest $request)
     {
+        Gate::authorize('role', ['arsip']);
+
         try {
             DB::transaction(function () use ($request) {
 
@@ -129,6 +134,8 @@ class DocumentController extends Controller
 
     public function show($document_uuid)
     {
+        Gate::authorize('role', ['arsip']);
+
         $document = Document::with([
             'creator',
             'file',
@@ -147,6 +154,8 @@ class DocumentController extends Controller
 
     public function sendToBlockchain(Document $document)
     {
+        Gate::authorize('role', ['arsip']);
+
         if ($document->blockchainTransaction && $document->status !== 'draft') {
             return back()->with('error', 'Dokumen ini telah tercatat di Blockchain');
         }
