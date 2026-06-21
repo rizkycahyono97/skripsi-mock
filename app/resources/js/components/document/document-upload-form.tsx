@@ -191,7 +191,7 @@ export default function DocumentUploadForm({ data, setData, errors }: Props) {
                 <Input
                     id="file"
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,application/pdf"
                     className="mt-1 block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
                     onChange={(e) =>
                         setData('file', e.target.files?.[0] ?? null)

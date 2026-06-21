@@ -6,8 +6,6 @@ import DocumentInfoCard from '@/components/document/document-info-card';
 import PageHeader from '@/components/global/page-header';
 
 export default function Show({ document }: { document: any }) {
-    console.log(document.file);
-
     return (
         <div className="min-h-screen bg-background py-8">
             <Head title={`Dokumen: ${document.title}`} />

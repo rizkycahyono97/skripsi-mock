@@ -151,8 +151,6 @@ class DocumentController extends Controller
             'fileHash' => $document->file_hash,
         ];
 
-        // dd($payload);
-
         try {
             $response = Http::timeout(30)
                 ->withHeaders([
