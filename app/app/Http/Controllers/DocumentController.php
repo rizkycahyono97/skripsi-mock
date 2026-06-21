@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\BlockchainTransaction;
 use App\Models\Document;
 use App\Models\DocumentFile;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -175,10 +176,17 @@ class DocumentController extends Controller
             DB::transaction(function () use ($document, $result) {
                 BlockchainTransaction::create([
                     'document_id' => $document->id,
-                    'tx_hash' => $responseData['tx_hash'] ?? null,
-                    'contract_address' => $responseData['contract_address'] ?? null,
-                    'block_number' => $responseData['block_number'] ?? null,
-                    'signer_address' => $responseData['signer_address'] ?? null,
+                    'tx_hash' => $result['transactionHash'] ?? null,
+                    'block_number' => $result['blockNumber'] ?? null,
+                    'block_hash' => $result['blockHash'] ?? null,
+                    'contract_address' => $result['contractAddress'] ?? null,
+                    'document_key' => $result['documentKey'] ?? null,
+                    'signer_address' => $result['signerAddress'] ?? null,
+                    'gas_used' => $result['gasUsed'] ?? null,
+                    'block_timestamp' => isset($result['blockTimestamp'])
+                                    ? Carbon::createFromTimestamp($result['blockTimestamp'])
+                                    : null,
+                    'status' => $result['status'] ?? null,
                 ]);
 
                 $document->update(['status' => 'registered']);

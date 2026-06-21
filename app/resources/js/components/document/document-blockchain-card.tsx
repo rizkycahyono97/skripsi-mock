@@ -95,7 +95,7 @@ export default function DocumentBlockchainCard({ document }: Props) {
                                 </span>{' '}
                                 {new Date(
                                     document.blockchain_transaction
-                                        .confirmed_at,
+                                        .block_timestamp,
                                 ).toLocaleString('id-ID')}
                             </p>
                         </div>

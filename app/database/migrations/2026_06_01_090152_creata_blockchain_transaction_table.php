@@ -16,14 +16,14 @@ return new class extends Migration
             $table->id();
 
             $table->string('tx_hash')->unique();
-
             $table->unsignedBigInteger('block_number');
-
+            $table->string('block_hash');
             $table->string('contract_address');
-
+            $table->string('document_key');
             $table->string('signer_address');
-
-            $table->timestamp('confirmed_at')->nullable();
+            $table->integer('gas_used');
+            $table->timestamp('block_timestamp')->nullable();
+            $table->enum('status', ['SUCCESS', 'FAILED']);
 
             $table->timestamps();
 

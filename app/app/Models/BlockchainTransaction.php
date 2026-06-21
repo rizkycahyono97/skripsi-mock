@@ -9,14 +9,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable('document_id',
     'tx_hash',
     'block_number',
+    'block_hash',
     'contract_address',
+    'document_key',
     'signer_address',
-    'confirmed_at',
+    'gas_used',
+    'block_timestamp',
+    'status',
     'document_id')]
 class BlockchainTransaction extends Model
 {
     protected $casts = [
-        'confirmed_at' => 'datetime',
+        'block_timestamp' => 'datetime',
     ];
 
     public function document(): BelongsTo
