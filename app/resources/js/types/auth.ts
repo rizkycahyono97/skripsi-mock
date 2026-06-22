@@ -8,6 +8,9 @@ export type User = {
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
+    wallet?: {
+        public_address: string;
+    } | null;
 };
 
 export type Auth = {
