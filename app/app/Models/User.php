@@ -44,4 +44,9 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(AuditLog::class);
     }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
 }
