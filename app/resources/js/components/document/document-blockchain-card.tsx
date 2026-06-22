@@ -12,7 +12,7 @@ interface Props {
 export default function DocumentBlockchainCard({ document }: Props) {
     const [sending, setSending] = useState(false);
 
-    const handleSendToBlockchain = () => {
+    const handlesignAndIssue = () => {
         setSending(true);
         router.post(
             `/documents/${document.document_uuid}/sign-blockchain`,
@@ -106,7 +106,7 @@ export default function DocumentBlockchainCard({ document }: Props) {
                             Dokumen ini belum tercatat di Blockchain.
                         </div>
                         <Button
-                            onClick={handleSendToBlockchain}
+                            onClick={handlesignAndIssue}
                             disabled={sending}
                             className="w-full"
                         >

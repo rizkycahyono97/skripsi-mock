@@ -20,7 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/documents/upload', [DocumentController::class, 'upload'])->name('documents.upload');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('/documents/{document:document_uuid}', [DocumentController::class,  'show'])->name('documents.show');
-    Route::post('/documents/{document:document_uuid}/sign-blockchain', [DocumentController::class, 'sendToBlockchain'])->name('documents.sign-blockchain');
+    Route::post('/documents/{document:document_uuid}/sign-blockchain', [DocumentController::class, 'signAndIssue'])->name('documents.sign-blockchain');
 
     // users
     Route::get('/users', [UserControler::class, 'index'])->name('users.index');
