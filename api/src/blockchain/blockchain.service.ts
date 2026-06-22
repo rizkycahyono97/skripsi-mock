@@ -14,10 +14,16 @@ import {
   ethers,
 } from 'ethers';
 import { domain, types } from './constant/eip712.constants';
-import { SignDocumentRequest } from 'src/model/document.model';
+import {
+  SetValidatorDocumentRequest,
+  SignDocumentRequest,
+} from 'src/model/document.model';
 import { BlockchainValidation } from './blockchain.validation';
 import { ValidationService } from 'src/common/validation.service';
-import { BlockchainReceiptResponse } from 'src/model/blockchain.model';
+import {
+  BlockchainReceiptResponse,
+  BlockchainValidatorResponse,
+} from 'src/model/blockchain.model';
 // import * as tasdiqiAbiJson from './TasdiqiABI.json';
 
 @Injectable()
@@ -159,6 +165,50 @@ export class BlockchainService implements OnModuleInit {
       const err = error as Error;
       this.logger.error(
         `[BlockchainService.signAndIssueDocument] Transaksi gagal: ${err.message}`,
+        err.stack,
+      );
+      throw error;
+    }
+  }
+
+  async setValidatorStatus(
+    request: SetValidatorDocumentRequest,
+  ): Promise<BlockchainValidatorResponse> {
+    this.logger.info(
+      `[BlockchainService.setValidatorStatus] ${JSON.stringify(request)}`,
+    );
+
+    const ownerPk = this.configService.get<string>(
+      'BLOCKCHAIN_OWNER_PRIVATE_KEY',
+    );
+    if (!ownerPk) {
+      throw new Error(
+        'Owner private key tidak ditemukan di environment variables',
+      );
+    }
+
+    try {
+      const ownerWallet = new Wallet(ownerPk, this.provider);
+      const contract = this.getContract(ownerWallet);
+
+      const tx = (await contract.setValidator(
+        request.validatorAddress,
+        request.status,
+      )) as ContractTransactionResponse;
+      this.logger.info(
+        `[BlockchainService.setValidatorStatus] Tx Terkirim: ${tx.hash}`,
+      );
+
+      const receipt = (await tx.wait()) as TransactionReceipt;
+
+      return {
+        transactionHash: receipt.hash,
+        status: receipt.status === 1 ? 'SUCCESS' : 'FAILED',
+      };
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(
+        `[BlockchainService.setValidatorStatus] Gagal: ${err.message}`,
         err.stack,
       );
       throw error;

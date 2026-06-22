@@ -9,3 +9,8 @@ export class BlockchainReceiptResponse {
   blockTimestamp!: number;
   status!: 'SUCCESS' | 'FAILED';
 }
+
+export class BlockchainValidatorResponse {
+  transactionHash!: string;
+  status!: 'SUCCESS' | 'FAILED';
+}

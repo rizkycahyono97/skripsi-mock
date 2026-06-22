@@ -4,3 +4,8 @@ export class SignDocumentRequest {
   fileHash!: string;
   validatorPrivateKey!: string;
 }
+
+export class SetValidatorDocumentRequest {
+  validatorAddress!: string;
+  status!: boolean;
+}
