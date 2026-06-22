@@ -9,3 +9,7 @@ export class SetValidatorDocumentRequest {
   validatorAddress!: string;
   status!: boolean;
 }
+
+export class CheckValidatorRequest {
+  address!: string;
+}

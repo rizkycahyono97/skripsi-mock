@@ -14,3 +14,8 @@ export class BlockchainValidatorResponse {
   transactionHash!: string;
   status!: 'SUCCESS' | 'FAILED';
 }
+
+export class BlockchainIsValidatorResponse {
+  address!: string;
+  isAuthorized!: boolean;
+}

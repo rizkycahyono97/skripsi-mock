@@ -1,10 +1,12 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { BlockchainService } from 'src/blockchain/blockchain.service';
 import {
+  BlockchainIsValidatorResponse,
   BlockchainReceiptResponse,
   BlockchainValidatorResponse,
 } from 'src/model/blockchain.model';
 import {
+  CheckValidatorRequest,
   SetValidatorDocumentRequest,
   SignDocumentRequest,
 } from 'src/model/document.model';
@@ -26,13 +28,23 @@ export class DocumentController {
     };
   }
 
-  @Post('/set-validator')
+  @Post('/validator')
   @HttpCode(200)
   async setValidator(
     @Body() request: SetValidatorDocumentRequest,
   ): Promise<WebResponse<BlockchainValidatorResponse>> {
     const result = await this.blockchainService.setValidatorStatus(request);
 
+    return {
+      data: result,
+    };
+  }
+
+  @Get('/validator/check/:address')
+  async checkValidator(
+    @Param() params: CheckValidatorRequest,
+  ): Promise<WebResponse<BlockchainIsValidatorResponse>> {
+    const result = await this.blockchainService.isAuthorizedValidator(params);
     return {
       data: result,
     };

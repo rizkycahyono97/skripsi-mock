@@ -12,7 +12,7 @@ export default function Show({ user }: { user: User }) {
         <div className="py-12">
             <div className="mx-auto sm:px-6 lg:px-8">
                 <PageHeader
-                    title="Users"
+                    title="Users Show"
                     actionLink="/users"
                     actionText="Kembali"
                     description="Kelola, upload, dan buat wallet users anda disini."

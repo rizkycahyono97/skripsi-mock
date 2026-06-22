@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   Contract,
+  ContractRunner,
   ContractTransactionResponse,
   JsonRpcProvider,
   Signer,
@@ -15,12 +16,14 @@ import {
 } from 'ethers';
 import { domain, types } from './constant/eip712.constants';
 import {
+  CheckValidatorRequest,
   SetValidatorDocumentRequest,
   SignDocumentRequest,
 } from 'src/model/document.model';
 import { BlockchainValidation } from './blockchain.validation';
 import { ValidationService } from 'src/common/validation.service';
 import {
+  BlockchainIsValidatorResponse,
   BlockchainReceiptResponse,
   BlockchainValidatorResponse,
 } from 'src/model/blockchain.model';
@@ -69,13 +72,15 @@ export class BlockchainService implements OnModuleInit {
     );
   }
 
-  public getContract(signer: Signer): Contract {
+  private getContract(runner: ContractRunner): Contract {
     this.logger.info(
-      `[BlockchainService.getContract] ${JSON.stringify(signer)}`,
+      `[BlockchainService.getContract] ${JSON.stringify(runner)}`,
     );
+
     const contractAddress = this.configService.get<string>(
       'BLOCKCHAIN_CONTRACT_ADDRESS',
     );
+
     if (!contractAddress) {
       this.logger.info(
         '[BlockchainService.getContract] BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env',
@@ -83,7 +88,7 @@ export class BlockchainService implements OnModuleInit {
       throw new Error('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
     }
 
-    return new ethers.Contract(contractAddress, this.tasdiqiAbi, signer);
+    return new Contract(contractAddress, this.tasdiqiAbi, runner);
   }
 
   async signAndIssueDocument(
@@ -210,6 +215,37 @@ export class BlockchainService implements OnModuleInit {
       this.logger.error(
         `[BlockchainService.setValidatorStatus] Gagal: ${err.message}`,
         err.stack,
+      );
+      throw error;
+    }
+  }
+
+  async isAuthorizedValidator(
+    request: CheckValidatorRequest,
+  ): Promise<BlockchainIsValidatorResponse> {
+    this.logger.info(
+      `[BlockchainService.isAuthorizedValidator] ${JSON.stringify(request)}`,
+    );
+
+    try {
+      const contract = this.getContract(this.provider);
+
+      const isAuthorized: boolean = await contract.isAuthorizedValidator(
+        request.address,
+      );
+
+      this.logger.info(
+        `[BlockchainService.isAuthorizedValidator] ${request.address}-${isAuthorized ? 'AKTIF' : 'TIDAK AKTIF'}`,
+      );
+
+      return {
+        address: request.address,
+        isAuthorized: isAuthorized,
+      };
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(
+        `[BlockchainService.isAuthorizedValidator] ${err.message}-${err.stack} BlockchainService.checkValidatorStatus`,
       );
       throw error;
     }
