@@ -87,19 +87,17 @@ export class BlockchainService implements OnModuleInit {
       `[BlockchainService.signAndIssueDocument] ${JSON.stringify(request)}`,
     );
 
+    console.log(JSON.stringify(request));
+
     const blockchainRequest =
       this.validationService.validate<SignDocumentRequest>(
         BlockchainValidation.SIGN,
         request,
       );
 
-    const validatorPk = this.configService.get<string>(
-      'BLOCKCHAIN_VALIDATOR_PRIVATE_KEY',
-    );
+    const validatorPk = blockchainRequest.validatorPrivateKey;
     if (!validatorPk) {
-      throw new Error(
-        'Validator private key not found di environment variables',
-      );
+      throw new Error('Validator private key not found di  request API');
     }
 
     try {

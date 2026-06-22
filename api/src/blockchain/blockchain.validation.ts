@@ -10,9 +10,12 @@ export class BlockchainValidation {
     identityHash: z
       .string()
       .min(1, { message: 'Identity Hash tidak boleh kosong' }),
-    // .startsWith('0x', { message: 'Identity Hash harus diawali dengan 0x' }),
 
     fileHash: z.string().min(1, { message: 'File Hash tidak boleh kosong' }),
-    // .startsWith('0x', { message: 'File Hash harus diawali dengan 0x' }),
+
+    validatorPrivateKey: z
+      .string()
+      .min(64, 'Private key terlalu pendek')
+      .max(64, 'private key terlalu panjang'),
   });
 }

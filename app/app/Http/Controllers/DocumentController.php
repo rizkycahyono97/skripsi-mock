@@ -14,6 +14,7 @@ use BaconQrCode\Writer;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
@@ -164,6 +165,7 @@ class DocumentController extends Controller
             'documentNumber' => $document->document_number,
             'identityHash' => $document->identity_hash,
             'fileHash' => $document->file_hash,
+            'validatorPrivateKey' => Crypt::decryptString(Auth::user()->wallet->encrypted_private_address),
         ];
 
         try {
