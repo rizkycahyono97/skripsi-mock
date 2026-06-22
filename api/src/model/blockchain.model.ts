@@ -1,3 +1,5 @@
+import { string } from 'zod';
+
 export class BlockchainReceiptResponse {
   transactionHash!: string;
   blockNumber!: number;
@@ -18,4 +20,12 @@ export class BlockchainValidatorResponse {
 export class BlockchainIsValidatorResponse {
   address!: string;
   isAuthorized!: boolean;
+}
+
+export class GetDocumentDetailResponse {
+  documentNumber!: string;
+  identityHash!: string;
+  fileHash!: string;
+  signer!: string;
+  registeredAt!: number;
 }

@@ -4,9 +4,11 @@ import {
   BlockchainIsValidatorResponse,
   BlockchainReceiptResponse,
   BlockchainValidatorResponse,
+  GetDocumentDetailResponse,
 } from 'src/model/blockchain.model';
 import {
   CheckValidatorRequest,
+  GetDocumentDetailRequest,
   SetValidatorDocumentRequest,
   SignDocumentRequest,
 } from 'src/model/document.model';
@@ -15,6 +17,18 @@ import { WebResponse } from 'src/model/web.model';
 @Controller('/api/documents')
 export class DocumentController {
   constructor(private blockchainService: BlockchainService) {}
+
+  @Get('/:documentKey')
+  @HttpCode(200)
+  async getDocument(
+    @Param() params: GetDocumentDetailRequest,
+  ): Promise<WebResponse<GetDocumentDetailResponse>> {
+    const result = await this.blockchainService.getDocumentDetail(params);
+
+    return {
+      data: result,
+    };
+  }
 
   @Post('/sign')
   @HttpCode(200)

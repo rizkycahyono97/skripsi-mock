@@ -13,3 +13,7 @@ export class SetValidatorDocumentRequest {
 export class CheckValidatorRequest {
   address!: string;
 }
+
+export class GetDocumentDetailRequest {
+  documentKey!: string;
+}

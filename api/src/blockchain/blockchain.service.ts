@@ -9,7 +9,6 @@ import {
   ContractRunner,
   ContractTransactionResponse,
   JsonRpcProvider,
-  Signer,
   TransactionReceipt,
   Wallet,
   ethers,
@@ -17,6 +16,7 @@ import {
 import { domain, types } from './constant/eip712.constants';
 import {
   CheckValidatorRequest,
+  GetDocumentDetailRequest,
   SetValidatorDocumentRequest,
   SignDocumentRequest,
 } from 'src/model/document.model';
@@ -26,6 +26,7 @@ import {
   BlockchainIsValidatorResponse,
   BlockchainReceiptResponse,
   BlockchainValidatorResponse,
+  GetDocumentDetailResponse,
 } from 'src/model/blockchain.model';
 // import * as tasdiqiAbiJson from './TasdiqiABI.json';
 
@@ -42,7 +43,7 @@ export class BlockchainService implements OnModuleInit {
 
   onModuleInit() {
     this.logger.info(
-      '[BlockchainService.onModuleInit] inisialisasi konfigurasi blockchain',
+      `[BlockchainService.onModuleInit] inisialisasi konfigurasi blockchain`,
     );
 
     const abiPath = path.join(process.cwd(), 'abi', 'TasdiqiABI.json');
@@ -245,7 +246,40 @@ export class BlockchainService implements OnModuleInit {
     } catch (error) {
       const err = error as Error;
       this.logger.error(
-        `[BlockchainService.isAuthorizedValidator] ${err.message}-${err.stack} BlockchainService.checkValidatorStatus`,
+        `[BlockchainService.isAuthorizedValidator] ${err.message}-${err.stack} `,
+      );
+      throw error;
+    }
+  }
+
+  async getDocumentDetail(
+    request: GetDocumentDetailRequest,
+  ): Promise<GetDocumentDetailResponse> {
+    this.logger.info(
+      `[BlockchainService.getDocumentDetail] ${JSON.stringify(request)}`,
+    );
+
+    try {
+      const contract = this.getContract(this.provider);
+      const document: GetDocumentDetailResponse = await contract.getDocument(
+        request.documentKey,
+      );
+
+      this.logger.info(
+        `[BlockchainService.getDocumentDetail] ${request.documentKey}  berhasil didapatkan`,
+      );
+
+      return {
+        documentNumber: document.documentNumber,
+        identityHash: document.identityHash,
+        fileHash: document.fileHash,
+        signer: document.signer,
+        registeredAt: Number(document.registeredAt),
+      };
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(
+        `[BlockchainService.getDocumentDetail] ${err.message}-${err.stack} `,
       );
       throw error;
     }
