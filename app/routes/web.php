@@ -27,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/users/{user}', [UserControler::class, 'show'])->name('users.show');
 
     // wallet
-    Route::post('/users/{user}/wallet', [WalletController::class, 'generateWallet'])->name('wallet.generate');
+    Route::post('/users/{user}/wallet', [WalletController::class, 'generateAndActivateWallet'])->name('wallet.generate');
 
 });
 

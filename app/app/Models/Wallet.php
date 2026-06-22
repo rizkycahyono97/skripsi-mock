@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'user_id',
     'public_address',
-    'encrypted_private_address',
+    'encrypted_private_key',
 ])]
 class Wallet extends Model
 {

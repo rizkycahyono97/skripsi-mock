@@ -29,6 +29,13 @@ class DatabaseSeeder extends Seeder
             'role' => 'arsip',
         ]);
 
+        $user1 = User::create([
+            'name' => 'user1',
+            'email' => 'user1@mail.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+        ]);
+
         // $this->call([
         //     DocumentFragment::class,
         // ]);

@@ -165,7 +165,7 @@ class DocumentController extends Controller
             'documentNumber' => $document->document_number,
             'identityHash' => $document->identity_hash,
             'fileHash' => $document->file_hash,
-            'validatorPrivateKey' => Crypt::decryptString(Auth::user()->wallet->encrypted_private_address),
+            'validatorPrivateKey' => Crypt::decryptString(Auth::user()->wallet->encrypted_private_key),
         ];
 
         try {

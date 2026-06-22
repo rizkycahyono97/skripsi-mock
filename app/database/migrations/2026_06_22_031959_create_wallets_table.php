@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('wallets', function (Blueprint $table) {
             $table->id();
             $table->string('public_address', 42)->unique();
-            $table->text('encrypted_private_address');
+            $table->text('encrypted_private_key');
 
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();

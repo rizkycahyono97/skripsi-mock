@@ -26,7 +26,7 @@ export class DocumentController {
     };
   }
 
-  @Post('/validator')
+  @Post('/set-validator')
   @HttpCode(200)
   async setValidator(
     @Body() request: SetValidatorDocumentRequest,

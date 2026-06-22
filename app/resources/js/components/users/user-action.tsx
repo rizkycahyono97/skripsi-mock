@@ -47,7 +47,7 @@ export default function UserActions({ user }: Props) {
                     setConfirmOpen(false);
                 },
                 onError: () => {
-                    toast.error('Gagal membuat wallet.');
+                    toast.error('Gagal membuat wallet ');
                 },
             },
         );
