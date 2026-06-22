@@ -33,13 +33,13 @@ export class BlockchainService implements OnModuleInit {
 
   onModuleInit() {
     this.logger.info(
-      'BlockchainService.onModuleInit[inisialisasi konfigurasi blockchain]',
+      '[BlockchainService.onModuleInit] inisialisasi konfigurasi blockchain',
     );
 
     const abiPath = path.join(process.cwd(), 'abi', 'TasdiqiABI.json');
     if (!fs.existsSync(abiPath)) {
       this.logger.error(
-        `File ABI Tasdiqi tidak ditemukan di route: ${abiPath}`,
+        `[BlockchainService.onModuleInit] File ABI Tasdiqi tidak ditemukan di route: ${abiPath}`,
       );
       throw new Error(`File ABI Tasdiqi tidak ditemukan di route: ${abiPath}`);
     }
@@ -65,13 +65,15 @@ export class BlockchainService implements OnModuleInit {
 
   public getContract(signer: Signer): Contract {
     this.logger.info(
-      `BlockchainService.getContract[${JSON.stringify(signer)}]`,
+      `[BlockchainService.getContract] ${JSON.stringify(signer)}`,
     );
     const contractAddress = this.configService.get<string>(
       'BLOCKCHAIN_CONTRACT_ADDRESS',
     );
     if (!contractAddress) {
-      this.logger.info('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
+      this.logger.info(
+        '[BlockchainService.getContract] BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env',
+      );
       throw new Error('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
     }
 
@@ -82,7 +84,7 @@ export class BlockchainService implements OnModuleInit {
     request: SignDocumentRequest,
   ): Promise<BlockchainReceiptResponse> {
     this.logger.info(
-      `BlockchainService.signAndIssueDocument[${JSON.stringify(request)}]`,
+      `[BlockchainService.signAndIssueDocument] ${JSON.stringify(request)}`,
     );
 
     const blockchainRequest =
@@ -110,7 +112,7 @@ export class BlockchainService implements OnModuleInit {
         blockchainRequest,
       );
       this.logger.info(
-        `BlockchainService.signAndIssueDocument[Signature berhasil dibuat: ${signature}]`,
+        `[BlockchainService.signAndIssueDocument] Signature berhasil dibuat: ${signature}`,
       );
 
       const tx = (await contract.issueDocument(
@@ -119,14 +121,14 @@ export class BlockchainService implements OnModuleInit {
       )) as ContractTransactionResponse;
 
       this.logger.info(
-        `BlockchainService.signAndIssueDocument[Transaksi terkirim. Tx Hash: ${tx.hash}]`,
+        `[BlockchainService.signAndIssueDocument] Transaksi terkirim. Tx Hash: ${tx.hash}`,
       );
 
       const receipt = (await tx.wait()) as TransactionReceipt;
       const block = await this.provider.getBlock(receipt.blockNumber);
 
       this.logger.info(
-        `BlockchainService.signAndIssueDocument[Transaksi Sukses, Block #${receipt.blockNumber}! Gas Used: ${receipt.gasUsed.toString()}]`,
+        `[BlockchainService.signAndIssueDocument] Transaksi Sukses, Block #${receipt.blockNumber}! Gas Used: ${receipt.gasUsed.toString()}`,
       );
 
       // event contract
@@ -158,7 +160,7 @@ export class BlockchainService implements OnModuleInit {
     } catch (error) {
       const err = error as Error;
       this.logger.error(
-        `BlockchainService.signAndIssueDocument[Transaksi gagal: ${err.message}]`,
+        `[BlockchainService.signAndIssueDocument] Transaksi gagal: ${err.message}`,
         err.stack,
       );
       throw error;
