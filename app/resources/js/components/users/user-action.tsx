@@ -46,8 +46,14 @@ export default function UserActions({ user }: Props) {
                     toast.success('Wallet berhasil dibuat!');
                     setConfirmOpen(false);
                 },
-                onError: () => {
-                    toast.error('Gagal membuat wallet ');
+                onError: (errors) => {
+                    const errorMsg = Object.values(errors);
+
+                    if (errorMsg.length > 0) {
+                        toast.error(errorMsg[0]);
+                    } else {
+                        toast.error('Gagal membuat wallet. silakan coba lagi');
+                    }
                 },
             },
         );

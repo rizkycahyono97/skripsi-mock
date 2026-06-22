@@ -29,7 +29,7 @@ class WalletController extends Controller
                 ->withHeaders([
                     'x-api-key' => config('api.blockchain.key'),
                 ])
-                ->post(config('api.blockchain.url').'/documents/set-validator', [
+                ->post(config('api.blockchain.url').'/documents/validator', [
                     'validatorAddress' => $keys['public_address'],
                     'status' => true,
                 ]);
@@ -50,7 +50,7 @@ class WalletController extends Controller
         } catch (Exception $e) {
             report($e);
 
-            return back()->withErrors(['system' => 'Gagal memgenerate wallet address cypto']);
+            return back()->withErrors(['system' => 'Gagal memgenerate wallet address cypto, '.$e->getMessage()]);
         }
     }
 

@@ -153,7 +153,7 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function sendToBlockchain(Document $document)
+    public function signAndIssue(Document $document)
     {
         Gate::authorize('role', ['arsip']);
 
