@@ -5,7 +5,7 @@ Repositori ini berisi **Smart Contract Tasdiqi** yang dikembangkan menggunakan f
 ## 🚀 Fitur Utama
 
 - **EIP-712 Structured Data**: Penandatanganan dokumen dengan standar data terstruktur.
-- **Multi-Biro Authorization**: Mendukung banyak penandatangan (Biro) yang dikelola melalui _Access Control List_.
+- **Multi-User Authorization**: Mendukung banyak penandatangan (User) yang dikelola melalui _Access Control List_.
 - **Audit Trail**: Mencatat setiap dokumen yang diterbitkan dan perubahan otoritas biro melalui _Event Logs_.
 
 ---
@@ -15,7 +15,7 @@ Repositori ini berisi **Smart Contract Tasdiqi** yang dikembangkan menggunakan f
 Pastikan kamu sudah menginstal:
 
 - [Foundry](https://www.google.com/search?q=https://book.getfoundry.sh/getting-started/installation) (`forge`, `cast`, `anvil`).
-- Node Hyperledger Besu yang sedang berjalan di `http://127.0.0.1:8545`.
+- Jaringan Blockchain, **(saya memakai Hyperledger Besu)**
 
 ---
 
@@ -25,7 +25,7 @@ Buat file `.env` di folder `contract/` untuk mempermudah proses deploy:
 
 ```env
 RPC_URL=http://127.0.0.1:8545
-PRIVATE_KEY=0x... # Private key akun deployer (Admin/Owner)
+PRIVATE_KEY=0x... # Private key akun deployer (Admin/Owner) / bisa menggunakan command Foundry
 CHAIN_ID=1337
 ```
 
@@ -45,13 +45,19 @@ forge build
 
 Gunakan perintah `forge create` untuk men-deploy kontrak. Ganti `<OWNER_ADDRESS>` dengan alamat wallet admin kamu.
 
-1. menggunakan account
+1. jika memakai env
+
+```bash
+source ~./env
+```
+
+2. menggunakan account
 
 ```bash
 forge script script/Tasdiqi.s.sol  --rpc-url $LOCAL_RPC_URL --account yourAccount --broadcast
 ```
 
-2. menggunakan private-key
+3. menggunakan private-key
 
 ```bash
 forge script script/Tasdiqi.s.sol  --rpc-url $LOCAL_RPC_URL --private-key 0XYOURPRIVATEKEY --broadcast
@@ -61,7 +67,7 @@ _Catat **Deployed to: 0x...** yang muncul di terminal untuk digunakan pada API N
 
 ---
 
-## 🔐 Manajemen Otoritas Biro (Access Control)
+## 🔐 Manajemen Otoritas User (Access Control)
 
 Setelah kontrak ter-deploy, kamu harus mendaftarkan alamat wallet Biro agar mereka bisa menandatangani dokumen.
 
@@ -71,7 +77,7 @@ Gunakan `cast send` untuk memberikan akses ke alamat biro (contoh: Biro Akademik
 
 ```bash
 cast send <CONTRACT_ADDRESS> \
-    "setValidatorDocument(address,bool)" <WALLET_ADDRESS_BIRO> true \
+    "setValidator(address,bool)" <WALLET_ADDRESS_VALIDATOR> true \
     --rpc-url $LOCAL_RPC_URL \
     --account account8
 ```
@@ -96,7 +102,18 @@ cast balance <ADDRESS> --rpc-url http://localhost:9545 --ether
 
 ---
 
-## 📑 Interaksi Lainnya (Debug)
+## 📑 Interaksi Lainnya
+
+### IssueDocument
+
+memasukan document berdasarkan doc(sesuai type Document) dan signer
+
+```bash
+cast send  <CONTRACT_ADDRESS> \
+    "issueDocument(doc,signer)" <doc> <signer> \
+    --rpc-url $LOCAL_RPC_URL \
+    --account account8
+```
 
 ### Cek Nama Domain EIP-712
 
@@ -111,7 +128,7 @@ cast call <CONTRACT_ADDRESS> "getDomainSeparator()(bytes32)" --rpc-url $LOCAL_RP
 Mengecek apakah suatu hash dokumen sudah terdaftar di blockchain:
 
 ```bash
-cast call <CONTRACT_ADDRESS> "checkDocument(bytes32)(bool)" <DOC_HASH> --rpc-url $LOCAL_RPC_URL
+cast call <CONTRACT_ADDRESS> "getDocument(bytes32)" <DocumentKey> --rpc-url $LOCAL_RPC_URL
 ```
 
 ### Cek Ownable Contract
@@ -139,6 +156,6 @@ cast call <CONTRACT_ADDRESS> "owner()" --rpc-url $LOCAL_RPC_URL
 ---
 
 **Kontak Pengembang:**
-Rizky Cahyono Putra - Teknik Informatika
+Rizky Cahyono Putra - [rizkycahyono97](https://github.com/rizkycahyono97)
 
 ---
