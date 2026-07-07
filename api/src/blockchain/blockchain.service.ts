@@ -90,15 +90,7 @@ export class BlockchainService implements OnModuleInit {
     }
 
     //jika contract belum terdeploy
-    const provider = this.provider;
-    if (provider) {
-      const bytecode = await provider.getCode(contractAddress);
-      if (bytecode === '0x' || bytecode === '0x00') {
-        throw new Error(
-          `Contract ${contractAddress} belum terdeploy, Pastikan contract di deploy di jaringan Blockchain`,
-        );
-      }
-    }
+    await this.validateContractDeployment(contractAddress);
 
     return new Contract(contractAddress, this.tasdiqiAbi, runner);
   }
@@ -128,6 +120,8 @@ export class BlockchainService implements OnModuleInit {
       const contract = await this.getContract(wallet);
       const contractAddress = await contract.getAddress();
 
+      await this.validateContractDeployment(contractAddress);
+
       const signature: string = await wallet.signTypedData(
         domain,
         types,
@@ -153,37 +147,12 @@ export class BlockchainService implements OnModuleInit {
         `[BlockchainService.signAndIssueDocument] Transaksi Sukses, Block #${receipt.blockNumber}! Gas Used: ${receipt.gasUsed.toString()}`,
       );
 
-      // log abi & event contract
-      const hasLogsFromContract = receipt.logs.some(
-        (log) => log.address.toLowerCase() === contractAddress.toLowerCase(),
+      const eventLog = this.parseAndValidateEvent(
+        receipt,
+        contract,
+        contractAddress,
+        'DocumentIssued',
       );
-
-      if (!hasLogsFromContract) {
-        throw new Error(
-          'Transaksi sukses, tetapi Contract tidak mengeluarkan log/event sama sekali.',
-        );
-      }
-
-      const parseLogs = receipt.logs.map((log) => {
-        try {
-          return contract.interface.parseLog(log);
-        } catch (err) {
-          this.logger.warn(
-            `[BlockchainService] Gagal parsing log: ${(err as Error).message}`,
-          );
-          return null;
-        }
-      });
-
-      const eventLog = parseLogs.find(
-        (parsed) => parsed?.name === 'DocumentIssued',
-      );
-
-      if (!eventLog) {
-        throw new Error(
-          'Event DocumentIssued tidak ditemukan setelah parsing. Periksa apakah ABI di backend sudah sesuai dengan yang ada di Blockchain!',
-        );
-      }
 
       return {
         transactionHash: receipt.hash,
@@ -312,5 +281,59 @@ export class BlockchainService implements OnModuleInit {
       );
       throw error;
     }
+  }
+
+  /**
+   * @param contractAddress
+   * memastikan contract ada di jaringan blockchain
+   */
+  private async validateContractDeployment(
+    contractAddress: string,
+  ): Promise<void> {
+    const byteCode = await this.provider.getCode(contractAddress);
+
+    if (byteCode === '0x' || byteCode === '0x00') {
+      throw new Error(
+        `Contract ${contractAddress} belum terdeploy, Pastikan contract di deploy di jaringan Blockchain`,
+      );
+    }
+  }
+
+  private parseAndValidateEvent(
+    receipt: TransactionReceipt,
+    contract: Contract,
+    contractAddress: string,
+    eventName: string,
+  ): any {
+    const hasLogsFromContract = receipt.logs.some(
+      (log) => log.address.toLowerCase() === contractAddress.toLowerCase(),
+    );
+
+    if (!hasLogsFromContract) {
+      throw new Error(
+        'Transaksi sukses, tetapi Contract tidak mengeluarkan log/event sama sekali.',
+      );
+    }
+
+    const parseLogs = receipt.logs.map((log) => {
+      try {
+        return contract.interface.parseLog(log);
+      } catch (err) {
+        this.logger.warn(
+          `[BlockchainService] Gagal parsing log: ${(err as Error).message}`,
+        );
+        return null;
+      }
+    });
+
+    const eventLog = parseLogs.find((parsed) => parsed?.name === eventName);
+
+    if (!eventLog) {
+      throw new Error(
+        'Event DocumentIssued tidak ditemukan setelah parsing. Periksa apakah ABI di backend sudah sesuai dengan yang ada di Blockchain!',
+      );
+    }
+
+    return eventLog;
   }
 }
