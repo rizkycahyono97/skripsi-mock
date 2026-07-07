@@ -18,12 +18,14 @@ interface Props {
     transaction: Transaction;
     document: Document;
     fileUrl: string;
+    blockExproler: string;
 }
 
 export default function VerifyCardDetail({
     transaction,
     document,
     fileUrl,
+    blockExproler,
 }: Props) {
     const formattedDate = new Date(transaction.block_timestamp).toLocaleString(
         'id-ID',
@@ -32,6 +34,8 @@ export default function VerifyCardDetail({
             timeStyle: 'long',
         },
     );
+
+    const txLink = `${blockExproler}/transactions/${transaction.tx_hash}`;
 
     return (
         <div className="px-6 py-6 sm:p-8">
@@ -81,7 +85,7 @@ export default function VerifyCardDetail({
                             </dt>
                             <dd className="font-mono text-sm">
                                 <a
-                                    href="#"
+                                    href={txLink}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="text-primary hover:underline"

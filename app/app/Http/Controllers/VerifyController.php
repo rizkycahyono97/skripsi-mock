@@ -18,10 +18,13 @@ class VerifyController extends Controller
             abort(404, 'Dokumen tidak ditemukan atau tidak valid di jaringan blockchain');
         }
 
+        $blockExprolerURL = config('blockchain.BLOCK_EXPLORER');
+
         return Inertia::render('verify/show-qr', [
             'transaction' => $transaction,
             'document' => $transaction->document,
             'fileUrl' => $transaction->document->file->verified_file,
+            'blockExproler' => $blockExprolerURL,
         ]);
     }
 }

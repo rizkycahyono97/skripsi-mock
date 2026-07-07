@@ -15,12 +15,14 @@ type VerifyQrProps = {
         document_number: string;
     };
     fileUrl: string;
+    blockExproler: string;
 };
 
 export default function ShowQr({
     transaction,
     document,
     fileUrl,
+    blockExproler,
 }: VerifyQrProps) {
     // console.log(fileUrl);
     return (
@@ -33,8 +35,11 @@ export default function ShowQr({
                     transaction={transaction}
                     document={document}
                     fileUrl={`/storage/${fileUrl}`}
+                    blockExproler={blockExproler}
                 />
             </Card>
         </div>
     );
 }
+
+ShowQr.layout = (page: React.ReactNode) => <>{page}</>;
