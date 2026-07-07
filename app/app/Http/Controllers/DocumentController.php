@@ -146,10 +146,39 @@ class DocumentController extends Controller
             ->where('document_uuid', $document_uuid)
             ->firstOrFail();
 
+        $blockchainStatus = 'not_registered'; // status awal
+
+        // cek di jaringan
+        if ($document->blockchainTransaction) {
+            try {
+                $documentKey = $document->blockchainTransaction->document_key;
+
+                $response = Http::timeout(30)
+                    ->withHeaders([
+                        'x-api-key' => config('api.blockchain.key'),
+                    ])
+                    ->get(config('api.blockchain.url').'/documents/'.$documentKey);
+
+                if ($response->status() === 404) {
+                    $blockchainStatus = 'not_found';
+                } elseif ($response->failed()) {
+                    $errorMsg = $response->json('message') ?? 'Error API set-validator';
+                    throw new Exception($errorMsg);
+                } else {
+                    $blockchainStatus = 'valid';
+                }
+
+            } catch (Exception $e) {
+                Log::error('[Blockchain Verification Error]: '.$e->getMessage());
+                $blockchainStatus = 'error';
+            }
+        }
+
         // dd($document->toArray());
 
         return Inertia::render('documents/show', [
             'document' => $document,
+            'blockchainStatus' => $blockchainStatus,
         ]);
     }
 

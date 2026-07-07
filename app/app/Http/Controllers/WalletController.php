@@ -39,7 +39,7 @@ class WalletController extends Controller
                 throw new Exception($errorMsg);
             }
 
-            $wallet = Wallet::create([
+            Wallet::create([
                 'user_id' => $user->id,
                 'public_address' => $keys['public_address'],
                 'encrypted_private_key' => Crypt::encryptString($keys['private_key']),

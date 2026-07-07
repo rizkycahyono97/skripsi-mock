@@ -73,28 +73,6 @@ export class BlockchainService implements OnModuleInit {
     );
   }
 
-  private async getContract(runner: ContractRunner): Promise<Contract> {
-    this.logger.info(
-      `[BlockchainService.getContract] ${JSON.stringify(runner)}`,
-    );
-
-    const contractAddress = this.configService.get<string>(
-      'BLOCKCHAIN_CONTRACT_ADDRESS',
-    );
-
-    if (!contractAddress) {
-      this.logger.info(
-        '[BlockchainService.getContract] BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env',
-      );
-      throw new Error('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
-    }
-
-    //jika contract belum terdeploy
-    await this.validateContractDeployment(contractAddress);
-
-    return new Contract(contractAddress, this.tasdiqiAbi, runner);
-  }
-
   async signAndIssueDocument(
     request: SignDocumentRequest,
   ): Promise<BlockchainReceiptResponse> {
@@ -281,6 +259,28 @@ export class BlockchainService implements OnModuleInit {
       );
       throw error;
     }
+  }
+
+  private async getContract(runner: ContractRunner): Promise<Contract> {
+    this.logger.info(
+      `[BlockchainService.getContract] ${JSON.stringify(runner)}`,
+    );
+
+    const contractAddress = this.configService.get<string>(
+      'BLOCKCHAIN_CONTRACT_ADDRESS',
+    );
+
+    if (!contractAddress) {
+      this.logger.info(
+        '[BlockchainService.getContract] BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env',
+      );
+      throw new Error('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
+    }
+
+    //jika contract belum terdeploy
+    await this.validateContractDeployment(contractAddress);
+
+    return new Contract(contractAddress, this.tasdiqiAbi, runner);
   }
 
   /**
