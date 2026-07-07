@@ -48,7 +48,7 @@ Gunakan perintah `forge create` untuk men-deploy kontrak. Ganti `<OWNER_ADDRESS>
 1. jika memakai env
 
 ```bash
-source ~./env
+source ./env
 ```
 
 2. menggunakan account

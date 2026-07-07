@@ -89,6 +89,7 @@ export class BlockchainService implements OnModuleInit {
       throw new Error('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
     }
 
+    //jika contract belum terdeploy
     const provider = this.provider;
     if (provider) {
       const bytecode = await provider.getCode(contractAddress);
@@ -125,6 +126,7 @@ export class BlockchainService implements OnModuleInit {
     try {
       const wallet = new Wallet(validatorPk, this.provider);
       const contract = await this.getContract(wallet);
+      const contractAddress = await contract.getAddress();
 
       const signature: string = await wallet.signTypedData(
         domain,
@@ -151,19 +153,36 @@ export class BlockchainService implements OnModuleInit {
         `[BlockchainService.signAndIssueDocument] Transaksi Sukses, Block #${receipt.blockNumber}! Gas Used: ${receipt.gasUsed.toString()}`,
       );
 
-      // event contract
-      const eventLog = receipt.logs
-        .map((log) => {
-          try {
-            return contract.interface.parseLog(log);
-          } catch {
-            return null;
-          }
-        })
-        .find((parsed) => parsed?.name === 'DocumentIssued');
+      // log abi & event contract
+      const hasLogsFromContract = receipt.logs.some(
+        (log) => log.address.toLowerCase() === contractAddress.toLowerCase(),
+      );
+
+      if (!hasLogsFromContract) {
+        throw new Error(
+          'Transaksi sukses, tetapi Contract tidak mengeluarkan log/event sama sekali.',
+        );
+      }
+
+      const parseLogs = receipt.logs.map((log) => {
+        try {
+          return contract.interface.parseLog(log);
+        } catch (err) {
+          this.logger.warn(
+            `[BlockchainService] Gagal parsing log: ${(err as Error).message}`,
+          );
+          return null;
+        }
+      });
+
+      const eventLog = parseLogs.find(
+        (parsed) => parsed?.name === 'DocumentIssued',
+      );
 
       if (!eventLog) {
-        throw new Error('event DocumentIssued tidak ada');
+        throw new Error(
+          'Event DocumentIssued tidak ditemukan setelah parsing. Periksa apakah ABI di backend sudah sesuai dengan yang ada di Blockchain!',
+        );
       }
 
       return {
