@@ -73,7 +73,7 @@ export class BlockchainService implements OnModuleInit {
     );
   }
 
-  private getContract(runner: ContractRunner): Contract {
+  private async getContract(runner: ContractRunner): Promise<Contract> {
     this.logger.info(
       `[BlockchainService.getContract] ${JSON.stringify(runner)}`,
     );
@@ -89,6 +89,16 @@ export class BlockchainService implements OnModuleInit {
       throw new Error('BLOCKCHAIN_CONTRACT_ADDRESS tidak ditemukan di .env');
     }
 
+    const provider = this.provider;
+    if (provider) {
+      const bytecode = await provider.getCode(contractAddress);
+      if (bytecode === '0x' || bytecode === '0x00') {
+        throw new Error(
+          `Contract ${contractAddress} belum terdeploy, Pastikan contract di deploy di jaringan Blockchain`,
+        );
+      }
+    }
+
     return new Contract(contractAddress, this.tasdiqiAbi, runner);
   }
 
@@ -99,7 +109,7 @@ export class BlockchainService implements OnModuleInit {
       `[BlockchainService.signAndIssueDocument] ${JSON.stringify(request)}`,
     );
 
-    console.log(JSON.stringify(request));
+    // console.log(JSON.stringify(request));
 
     const blockchainRequest =
       this.validationService.validate<SignDocumentRequest>(
@@ -114,7 +124,7 @@ export class BlockchainService implements OnModuleInit {
 
     try {
       const wallet = new Wallet(validatorPk, this.provider);
-      const contract = this.getContract(wallet);
+      const contract = await this.getContract(wallet);
 
       const signature: string = await wallet.signTypedData(
         domain,
@@ -195,7 +205,7 @@ export class BlockchainService implements OnModuleInit {
 
     try {
       const ownerWallet = new Wallet(ownerPk, this.provider);
-      const contract = this.getContract(ownerWallet);
+      const contract = await this.getContract(ownerWallet);
 
       const tx = (await contract.setValidator(
         request.validatorAddress,
@@ -229,7 +239,7 @@ export class BlockchainService implements OnModuleInit {
     );
 
     try {
-      const contract = this.getContract(this.provider);
+      const contract = await this.getContract(this.provider);
 
       const isAuthorized: boolean = await contract.isAuthorizedValidator(
         request.address,
@@ -260,7 +270,7 @@ export class BlockchainService implements OnModuleInit {
     );
 
     try {
-      const contract = this.getContract(this.provider);
+      const contract = await this.getContract(this.provider);
       const document: GetDocumentDetailResponse = await contract.getDocument(
         request.documentKey,
       );
