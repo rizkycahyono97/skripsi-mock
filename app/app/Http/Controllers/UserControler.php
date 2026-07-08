@@ -46,10 +46,12 @@ class UserControler extends Controller
     {
         Gate::authorize('role', ['arsip']);
 
+        // dd($request);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'role' => 'required|string|in:admin,arsip,user',
+            'role' => 'required|string|in:admin,arsip,public',
             'password' => 'required|string|min:8|confirmed',
         ]);
 

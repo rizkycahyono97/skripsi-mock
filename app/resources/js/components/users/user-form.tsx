@@ -36,6 +36,8 @@ export default function UserForm({ user }: UserFormProps) {
         password_confirmation: '',
     });
 
+    console.log('data', data);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (isUpdateMode) {
@@ -105,8 +107,8 @@ export default function UserForm({ user }: UserFormProps) {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="arsip">Petugas Arsip</SelectItem>
-                        <SelectItem value="user">User Biasa</SelectItem>
+                        <SelectItem value="arsip">Arsip</SelectItem>
+                        <SelectItem value="public">Public</SelectItem>
                     </SelectContent>
                 </Select>
                 {errors.role && (
