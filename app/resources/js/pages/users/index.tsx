@@ -23,6 +23,8 @@ export default function Index({ users }: IndexProps) {
                 <PageHeader
                     title="Users"
                     description="Kelola, upload, dan buat wallet users anda disini."
+                    actionLink="/users/create"
+                    actionText="Create User"
                 />
 
                 <Card>

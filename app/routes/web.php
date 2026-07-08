@@ -23,8 +23,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/documents/{document:document_uuid}/sign-blockchain', [DocumentController::class, 'signAndIssue'])->name('documents.sign-blockchain');
 
     // users
-    Route::get('/users', [UserControler::class, 'index'])->name('users.index');
-    Route::get('/users/{user}', [UserControler::class, 'show'])->name('users.show');
+    // Route::get('/users', [UserControler::class, 'index'])->name('users.index');
+    // Route::get('/users/{user}', [UserControler::class, 'show'])->name('users.show');
+    // Route::get('/users/create', [UserControler::class, 'create'])->name('users.create');
+    // Route::post('/users', [UserControler::class, 'store'])->name('users.store');
+    // Route::get('/users/edit/{user}', [UserControler::class, 'edit'])->name('users.edit');
+    // Route::put('/users', [UserControler::class, 'update'])->name('users.update');
+    Route::resource('/users', UserControler::class);
 
     // wallet
     Route::post('/users/{user}/wallet', [WalletController::class, 'generateAndActivateWallet'])->name('wallet.generate');

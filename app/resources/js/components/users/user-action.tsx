@@ -2,15 +2,6 @@ import { Link, router } from '@inertiajs/react';
 import { MoreVertical, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { show } from '@/routes/users';
-import { generate } from '@/routes/wallet';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,6 +12,15 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { show } from '@/routes/users';
+import { generate } from '@/routes/wallet';
 
 interface User {
     id: number | string;

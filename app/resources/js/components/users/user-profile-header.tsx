@@ -13,12 +13,12 @@ export default function UserProfileHeader() {
                     Detail akun dan kredensial digital.
                 </CardDescription>
             </div>
-            <Button variant="ghost" size="sm" asChild>
+            {/* <Button variant="ghost" size="sm" asChild>
                 <Link href={index()}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Kembali
                 </Link>
-            </Button>
+            </Button> */}
         </CardHeader>
     );
 }
