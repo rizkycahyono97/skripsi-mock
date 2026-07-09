@@ -4,11 +4,11 @@ Backend REST API untuk sistem validasi dokumen digital **Tasdiqi** berbasis bloc
 
 Proyek ini merupakan bagian dari monorepo SkripsiTest yang terdiri dari:
 
-| Folder | Deskripsi |
-|--------|-----------|
-| `api/` | Backend NestJS (repositori ini) |
-| `contract/` | Smart contract Tasdiqi (Foundry) |
-| `app/` | Aplikasi frontend |
+| Folder           | Deskripsi                             |
+| ---------------- | ------------------------------------- |
+| `api/`           | Backend NestJS (repositori ini)       |
+| `contract/`      | Smart contract Tasdiqi (Foundry)      |
+| `app/`           | Aplikasi frontend                     |
 | `QBFT-Networks/` | Konfigurasi jaringan Hyperledger Besu |
 
 ---
@@ -27,14 +27,14 @@ Proyek ini merupakan bagian dari monorepo SkripsiTest yang terdiri dari:
 
 ## Tech Stack
 
-| Teknologi | Versi | Kegunaan |
-|-----------|-------|----------|
-| [NestJS](https://nestjs.com/) | 11.x | Framework backend |
-| [TypeScript](https://www.typescriptlang.org/) | 5.x | Bahasa pemrograman |
-| [ethers.js](https://docs.ethers.org/) | 6.x | Interaksi blockchain |
-| [Zod](https://zod.dev/) | 4.x | Validasi request |
-| [Winston](https://github.com/winstonjs/winston) | — | Logging |
-| Node.js | 20.x | Runtime |
+| Teknologi                                       | Versi | Kegunaan             |
+| ----------------------------------------------- | ----- | -------------------- |
+| [NestJS](https://nestjs.com/)                   | 11.x  | Framework backend    |
+| [TypeScript](https://www.typescriptlang.org/)   | 5.x   | Bahasa pemrograman   |
+| [ethers.js](https://docs.ethers.org/)           | 6.x   | Interaksi blockchain |
+| [Zod](https://zod.dev/)                         | 4.x   | Validasi request     |
+| [Winston](https://github.com/winstonjs/winston) | —     | Logging              |
+| Node.js                                         | 20.x  | Runtime              |
 
 ---
 
@@ -172,17 +172,17 @@ BLOCKCHAIN_CONTRACT_ADDRESS=0x...   # Alamat contract setelah deploy
 BLOCKCHAIN_OWNER_PRIVATE_KEY=...    # Private key owner (untuk set validator)
 ```
 
-| Variabel | Wajib | Deskripsi |
-|----------|-------|-----------|
-| `API_KEY` | Ya | Kunci rahasia untuk autentikasi request |
-| `APP_PORT` | Tidak | Port server (default: `3000`) |
-| `CORS_ORIGIN` | Tidak | Origin yang diizinkan untuk CORS |
-| `CORS_METHODS` | Tidak | HTTP methods yang diizinkan |
-| `CORS_ALLOWED_HEADERS` | Tidak | Header yang diizinkan |
-| `BLOCKCHAIN_RPC_URL` | Ya | URL RPC node Besu |
-| `BLOCKCHAIN_CHAIN_ID` | Ya | Chain ID jaringan blockchain |
-| `BLOCKCHAIN_CONTRACT_ADDRESS` | Ya | Alamat smart contract Tasdiqi |
-| `BLOCKCHAIN_OWNER_PRIVATE_KEY` | Ya* | Private key owner (*wajib untuk endpoint `/validator`) |
+| Variabel                       | Wajib | Deskripsi                                               |
+| ------------------------------ | ----- | ------------------------------------------------------- |
+| `API_KEY`                      | Ya    | Kunci rahasia untuk autentikasi request                 |
+| `APP_PORT`                     | Tidak | Port server (default: `3000`)                           |
+| `CORS_ORIGIN`                  | Tidak | Origin yang diizinkan untuk CORS                        |
+| `CORS_METHODS`                 | Tidak | HTTP methods yang diizinkan                             |
+| `CORS_ALLOWED_HEADERS`         | Tidak | Header yang diizinkan                                   |
+| `BLOCKCHAIN_RPC_URL`           | Ya    | URL RPC node Besu                                       |
+| `BLOCKCHAIN_CHAIN_ID`          | Ya    | Chain ID jaringan blockchain                            |
+| `BLOCKCHAIN_CONTRACT_ADDRESS`  | Ya    | Alamat smart contract Tasdiqi                           |
+| `BLOCKCHAIN_OWNER_PRIVATE_KEY` | Ya\*  | Private key owner (\*wajib untuk endpoint `/validator`) |
 
 ---
 
@@ -240,100 +240,12 @@ Jika API key tidak valid atau tidak disertakan, server mengembalikan respons `40
 
 ## Endpoint API
 
-| Method | Endpoint | Deskripsi |
-|--------|----------|-----------|
-| `GET` | `/api/documents/{documentKey}` | Ambil detail dokumen dari blockchain |
-| `POST` | `/api/documents/sign` | Tandatangani dan terbitkan dokumen |
-| `POST` | `/api/documents/validator` | Set status validator (aktif/nonaktif) |
-| `GET` | `/api/documents/validator/check/{address}` | Cek otorisasi validator |
-
-### Format Response
-
-Semua endpoint sukses mengembalikan data dalam format:
-
-```json
-{
-  "data": { ... }
-}
-```
-
-### Contoh Request & Response
-
-**Tandatangani dokumen** — `POST /api/documents/sign`
-
-```bash
-curl -X POST "http://localhost:3000/api/documents/sign" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: your-secret-api-key" \
-  -d '{
-    "documentNumber": "DOC-2026-001",
-    "identityHash": "0xabc123...",
-    "fileHash": "0x987654...",
-    "validatorPrivateKey": "a1b2c3d4e5f6..."
-  }'
-```
-
-```json
-{
-  "data": {
-    "transactionHash": "0x3f5c8e...",
-    "blockNumber": 42,
-    "blockHash": "0xabcdef...",
-    "contractAddress": "0x5FbDB2...",
-    "documentKey": "0x1a2b3c...",
-    "signerAddress": "0x742d35...",
-    "gasUsed": "210000",
-    "blockTimestamp": 1752048000,
-    "status": "SUCCESS"
-  }
-}
-```
-
-**Cek validator** — `GET /api/documents/validator/check/{address}`
-
-```bash
-curl -X GET "http://localhost:3000/api/documents/validator/check/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb" \
-  -H "x-api-key: your-secret-api-key"
-```
-
-```json
-{
-  "data": {
-    "address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
-    "isAuthorized": true
-  }
-}
-```
-
-> Dokumentasi API lengkap tersedia di [`docs/swagger.yaml`](docs/swagger.yaml). Buka file tersebut di [Swagger Editor](https://editor.swagger.io/) atau jalankan:
-
-```bash
-npx @redocly/cli preview-docs docs/swagger.yaml
-```
-
----
-
-## Validasi Request
-
-API memvalidasi input menggunakan skema Zod sebelum diproses:
-
-**`POST /api/documents/sign`**
-
-| Field | Tipe | Aturan |
-|-------|------|--------|
-| `documentNumber` | string | Tidak boleh kosong |
-| `identityHash` | string | Tidak boleh kosong |
-| `fileHash` | string | Tidak boleh kosong |
-| `validatorPrivateKey` | string | Tepat 64 karakter hex |
-
-**`POST /api/documents/validator`**
-
-| Field | Tipe | Aturan |
-|-------|------|--------|
-| `validatorAddress` | string | Format alamat Ethereum valid |
-| `status` | boolean | `true` atau `false` |
-
----
+| Method | Endpoint                                   | Deskripsi                             |
+| ------ | ------------------------------------------ | ------------------------------------- |
+| `GET`  | `/api/documents/{documentKey}`             | Ambil detail dokumen dari blockchain  |
+| `POST` | `/api/documents/sign`                      | Tandatangani dan terbitkan dokumen    |
+| `POST` | `/api/documents/validator`                 | Set status validator (aktif/nonaktif) |
+| `GET`  | `/api/documents/validator/check/{address}` | Cek otorisasi validator               |
 
 ## Testing
 
@@ -364,28 +276,28 @@ Aplikasi menggunakan Winston untuk logging:
 
 ## Troubleshooting
 
-| Masalah | Penyebab | Solusi |
-|---------|----------|--------|
-| `File ABI Tasdiqi tidak ditemukan` | `abi/TasdiqiABI.json` belum ada | Salin ABI dari hasil kompilasi contract |
-| `BLOCKCHAIN_RPC_URL atau BLOCKCHAIN_CHAIN_ID belum didefinisikan` | Variabel `.env` kosong | Isi nilai di file `.env` |
-| `Contract belum terdeploy` | Contract belum ada di jaringan | Deploy contract ke Besu, update `BLOCKCHAIN_CONTRACT_ADDRESS` |
-| `401 Unauthorized` | API key salah atau tidak dikirim | Sertakan header `x-api-key` yang benar |
-| `Validator private key not found` | Field `validatorPrivateKey` kosong | Pastikan private key validator dikirim di body request |
-| Koneksi RPC gagal | Node Besu tidak berjalan | Pastikan jaringan blockchain aktif di `BLOCKCHAIN_RPC_URL` |
+| Masalah                                                           | Penyebab                           | Solusi                                                        |
+| ----------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------- |
+| `File ABI Tasdiqi tidak ditemukan`                                | `abi/TasdiqiABI.json` belum ada    | Salin ABI dari hasil kompilasi contract                       |
+| `BLOCKCHAIN_RPC_URL atau BLOCKCHAIN_CHAIN_ID belum didefinisikan` | Variabel `.env` kosong             | Isi nilai di file `.env`                                      |
+| `Contract belum terdeploy`                                        | Contract belum ada di jaringan     | Deploy contract ke Besu, update `BLOCKCHAIN_CONTRACT_ADDRESS` |
+| `401 Unauthorized`                                                | API key salah atau tidak dikirim   | Sertakan header `x-api-key` yang benar                        |
+| `Validator private key not found`                                 | Field `validatorPrivateKey` kosong | Pastikan private key validator dikirim di body request        |
+| Koneksi RPC gagal                                                 | Node Besu tidak berjalan           | Pastikan jaringan blockchain aktif di `BLOCKCHAIN_RPC_URL`    |
 
 ---
 
 ## Scripts Tersedia
 
-| Perintah | Deskripsi |
-|----------|-----------|
-| `npm run build` | Kompilasi TypeScript ke `dist/` |
-| `npm run start` | Jalankan aplikasi |
-| `npm run start:dev` | Jalankan dengan hot reload |
-| `npm run start:prod` | Jalankan build production |
-| `npm run lint` | Lint & auto-fix kode |
-| `npm run format` | Format kode dengan Prettier |
-| `npm run test` | Jalankan unit test |
+| Perintah             | Deskripsi                       |
+| -------------------- | ------------------------------- |
+| `npm run build`      | Kompilasi TypeScript ke `dist/` |
+| `npm run start`      | Jalankan aplikasi               |
+| `npm run start:dev`  | Jalankan dengan hot reload      |
+| `npm run start:prod` | Jalankan build production       |
+| `npm run lint`       | Lint & auto-fix kode            |
+| `npm run format`     | Format kode dengan Prettier     |
+| `npm run test`       | Jalankan unit test              |
 
 ---
 
