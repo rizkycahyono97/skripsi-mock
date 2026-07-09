@@ -1,0 +1,549 @@
+openapi: 3.0.3
+info:
+  title: Tasdiqi Document API
+  description: |
+    API untuk mengelola dokumen digital berbasis blockchain Tasdiqi.
+
+    Semua endpoint memerlukan header `x-api-key` untuk autentikasi.
+
+    **Base URL:** `http://localhost:3000` (default, sesuaikan dengan `APP_PORT` di `.env`)
+  version: 1.0.0
+  contact:
+    name: Tasdiqi API Support
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: '{baseUrl}'
+    description: Custom server
+    variables:
+      baseUrl:
+        default: http://localhost:3000
+        description: URL dasar API
+
+tags:
+  - name: Documents
+    description: Operasi terkait dokumen digital
+  - name: Validators
+    description: Operasi terkait validator dokumen
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /api/documents/{documentKey}:
+    get:
+      tags:
+        - Documents
+      summary: Ambil detail dokumen
+      description: |
+        Mengambil informasi detail dokumen dari smart contract blockchain
+        berdasarkan `documentKey` yang diberikan.
+      operationId: getDocumentDetail
+      parameters:
+        - $ref: '#/components/parameters/DocumentKeyParam'
+      responses:
+        '200':
+          description: Detail dokumen berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDocumentDetailWebResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/GetDocumentDetailSuccessExample'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Dokumen tidak ditemukan di blockchain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  $ref: '#/components/examples/DocumentNotFoundExample'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/documents/sign:
+    post:
+      tags:
+        - Documents
+      summary: Tandatangani dan terbitkan dokumen
+      description: |
+        Menandatangani dokumen menggunakan EIP-712 typed data signature,
+        lalu menerbitkannya ke smart contract blockchain Tasdiqi.
+
+        Validator harus memiliki private key yang valid dan terdaftar
+        sebagai authorized validator di smart contract.
+      operationId: signDocument
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignDocumentRequest'
+            examples:
+              default:
+                $ref: '#/components/examples/SignDocumentRequestExample'
+      responses:
+        '200':
+          description: Dokumen berhasil ditandatangani dan diterbitkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignDocumentWebResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/SignDocumentSuccessExample'
+        '400':
+          description: Request body tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  $ref: '#/components/examples/ValidationErrorExample'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/documents/validator:
+    post:
+      tags:
+        - Validators
+      summary: Set status validator
+      description: |
+        Mengatur status validator (aktif/nonaktif) di smart contract.
+        Operasi ini dilakukan oleh owner contract menggunakan private key
+        yang dikonfigurasi di environment variable `BLOCKCHAIN_OWNER_PRIVATE_KEY`.
+      operationId: setValidatorStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetValidatorDocumentRequest'
+            examples:
+              activate:
+                $ref: '#/components/examples/SetValidatorActivateExample'
+              deactivate:
+                $ref: '#/components/examples/SetValidatorDeactivateExample'
+      responses:
+        '200':
+          description: Status validator berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetValidatorWebResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/SetValidatorSuccessExample'
+        '400':
+          description: Request body tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  $ref: '#/components/examples/ValidatorValidationErrorExample'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/documents/validator/check/{address}:
+    get:
+      tags:
+        - Validators
+      summary: Cek status otorisasi validator
+      description: |
+        Mengecek apakah alamat Ethereum tertentu terdaftar sebagai
+        authorized validator di smart contract Tasdiqi.
+      operationId: checkValidator
+      parameters:
+        - $ref: '#/components/parameters/ValidatorAddressParam'
+      responses:
+        '200':
+          description: Status otorisasi validator berhasil diperiksa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckValidatorWebResponse'
+              examples:
+                authorized:
+                  $ref: '#/components/examples/CheckValidatorAuthorizedExample'
+                unauthorized:
+                  $ref: '#/components/examples/CheckValidatorUnauthorizedExample'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key untuk autentikasi. Nilai harus sesuai dengan `API_KEY` di file `.env`.
+
+  parameters:
+    DocumentKeyParam:
+      name: documentKey
+      in: path
+      required: true
+      description: Kunci unik dokumen yang tersimpan di blockchain
+      schema:
+        type: string
+        example: '0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890'
+
+    ValidatorAddressParam:
+      name: address
+      in: path
+      required: true
+      description: Alamat Ethereum validator yang akan dicek
+      schema:
+        type: string
+        pattern: '^(0x)?[0-9a-fA-F]{40}$'
+        example: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+
+  responses:
+    UnauthorizedError:
+      description: API key tidak valid atau tidak disertakan
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unauthorized:
+              $ref: '#/components/examples/UnauthorizedExample'
+
+    InternalServerError:
+      description: Kesalahan internal server atau blockchain
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            serverError:
+              $ref: '#/components/examples/InternalServerErrorExample'
+
+  schemas:
+    # ── Request Bodies ──────────────────────────────────────────────
+    SignDocumentRequest:
+      type: object
+      required:
+        - documentNumber
+        - identityHash
+        - fileHash
+        - validatorPrivateKey
+      properties:
+        documentNumber:
+          type: string
+          minLength: 1
+          description: Nomor dokumen yang akan diterbitkan
+          example: 'DOC-2026-001'
+        identityHash:
+          type: string
+          minLength: 1
+          description: Hash identitas pemilik dokumen
+          example: '0xabc123def4567890abc123def4567890abc123def4567890abc123def4567890'
+        fileHash:
+          type: string
+          minLength: 1
+          description: Hash file dokumen (SHA-256 atau hash yang digunakan)
+          example: '0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba'
+        validatorPrivateKey:
+          type: string
+          minLength: 64
+          maxLength: 64
+          description: Private key validator (64 karakter hex, tanpa prefix 0x)
+          example: 'a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890'
+
+    SetValidatorDocumentRequest:
+      type: object
+      required:
+        - validatorAddress
+        - status
+      properties:
+        validatorAddress:
+          type: string
+          pattern: '^(0x)?[0-9a-fA-F]{40}$'
+          description: Alamat Ethereum validator
+          example: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+        status:
+          type: boolean
+          description: 'Status validator: `true` untuk mengaktifkan, `false` untuk menonaktifkan'
+          example: true
+
+    # ── Response Data Objects ───────────────────────────────────────
+    GetDocumentDetailResponse:
+      type: object
+      properties:
+        documentNumber:
+          type: string
+          description: Nomor dokumen
+          example: 'DOC-2026-001'
+        identityHash:
+          type: string
+          description: Hash identitas pemilik dokumen
+          example: '0xabc123def4567890abc123def4567890abc123def4567890abc123def4567890'
+        fileHash:
+          type: string
+          description: Hash file dokumen
+          example: '0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba'
+        signer:
+          type: string
+          description: Alamat Ethereum validator yang menandatangani dokumen
+          example: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+        registeredAt:
+          type: integer
+          format: int64
+          description: Unix timestamp saat dokumen didaftarkan di blockchain
+          example: 1752048000
+
+    BlockchainReceiptResponse:
+      type: object
+      properties:
+        transactionHash:
+          type: string
+          description: Hash transaksi blockchain
+          example: '0x3f5c8e9a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef12'
+        blockNumber:
+          type: integer
+          description: Nomor blok tempat transaksi dikonfirmasi
+          example: 42
+        blockHash:
+          type: string
+          description: Hash blok tempat transaksi dikonfirmasi
+          example: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+        contractAddress:
+          type: string
+          description: Alamat smart contract Tasdiqi
+          example: '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+        documentKey:
+          type: string
+          description: Kunci unik dokumen yang dihasilkan dari transaksi
+          example: '0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890'
+        signerAddress:
+          type: string
+          description: Alamat Ethereum validator penandatangan
+          example: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+        gasUsed:
+          type: string
+          description: Jumlah gas yang digunakan transaksi
+          example: '210000'
+        blockTimestamp:
+          type: integer
+          format: int64
+          description: Unix timestamp blok transaksi
+          example: 1752048000
+        status:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILED
+          description: Status transaksi blockchain
+          example: SUCCESS
+
+    BlockchainValidatorResponse:
+      type: object
+      properties:
+        transactionHash:
+          type: string
+          description: Hash transaksi blockchain
+          example: '0x9a8b7c6d5e4f3210987654321098765432109876543210987654321098765432'
+        status:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILED
+          description: Status transaksi blockchain
+          example: SUCCESS
+
+    BlockchainIsValidatorResponse:
+      type: object
+      properties:
+        address:
+          type: string
+          description: Alamat Ethereum yang dicek
+          example: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+        isAuthorized:
+          type: boolean
+          description: Apakah alamat terdaftar sebagai authorized validator
+          example: true
+
+    # ── Web Response Wrappers ───────────────────────────────────────
+    WebResponse:
+      type: object
+      description: Format response standar API
+      properties:
+        data:
+          description: Data hasil operasi (ada jika sukses)
+        errors:
+          type: string
+          description: Pesan error (ada jika gagal)
+
+    GetDocumentDetailWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/GetDocumentDetailResponse'
+
+    SignDocumentWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/BlockchainReceiptResponse'
+
+    SetValidatorWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/BlockchainValidatorResponse'
+
+    CheckValidatorWebResponse:
+      allOf:
+        - $ref: '#/components/schemas/WebResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/BlockchainIsValidatorResponse'
+
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 401
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: Pesan error
+          example: Unauthorized
+        error:
+          type: string
+          description: Tipe error HTTP
+          example: Unauthorized
+
+  examples:
+    # ── Request Examples ────────────────────────────────────────────
+    SignDocumentRequestExample:
+      summary: Contoh request tandatangani dokumen
+      value:
+        documentNumber: 'DOC-2026-001'
+        identityHash: '0xabc123def4567890abc123def4567890abc123def4567890abc123def4567890'
+        fileHash: '0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba'
+        validatorPrivateKey: 'a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890'
+
+    SetValidatorActivateExample:
+      summary: Aktifkan validator
+      value:
+        validatorAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+        status: true
+
+    SetValidatorDeactivateExample:
+      summary: Nonaktifkan validator
+      value:
+        validatorAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+        status: false
+
+    # ── Success Response Examples ─────────────────────────────────
+    GetDocumentDetailSuccessExample:
+      summary: Detail dokumen ditemukan
+      value:
+        data:
+          documentNumber: 'DOC-2026-001'
+          identityHash: '0xabc123def4567890abc123def4567890abc123def4567890abc123def4567890'
+          fileHash: '0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba'
+          signer: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+          registeredAt: 1752048000
+
+    SignDocumentSuccessExample:
+      summary: Dokumen berhasil diterbitkan
+      value:
+        data:
+          transactionHash: '0x3f5c8e9a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef12'
+          blockNumber: 42
+          blockHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+          contractAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+          documentKey: '0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890'
+          signerAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+          gasUsed: '210000'
+          blockTimestamp: 1752048000
+          status: SUCCESS
+
+    SetValidatorSuccessExample:
+      summary: Status validator berhasil diperbarui
+      value:
+        data:
+          transactionHash: '0x9a8b7c6d5e4f3210987654321098765432109876543210987654321098765432'
+          status: SUCCESS
+
+    CheckValidatorAuthorizedExample:
+      summary: Validator terotorisasi
+      value:
+        data:
+          address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+          isAuthorized: true
+
+    CheckValidatorUnauthorizedExample:
+      summary: Validator tidak terotorisasi
+      value:
+        data:
+          address: '0x1234567890123456789012345678901234567890'
+          isAuthorized: false
+
+    # ── Error Response Examples ───────────────────────────────────
+    UnauthorizedExample:
+      summary: API key tidak valid
+      value:
+        statusCode: 401
+        message: Unauthorized
+        error: Unauthorized
+
+    ValidationErrorExample:
+      summary: Validasi request sign gagal
+      value:
+        statusCode: 400
+        message:
+          - 'Nomor dokumen tidak boleh kosong'
+          - 'Private key terlalu pendek'
+        error: Bad Request
+
+    ValidatorValidationErrorExample:
+      summary: Validasi request validator gagal
+      value:
+        statusCode: 400
+        message:
+          - 'Format Ethereum Address tidak valid'
+        error: Bad Request
+
+    DocumentNotFoundExample:
+      summary: Dokumen tidak ditemukan
+      value:
+        statusCode: 404
+        message: 'Dokumen dengan key tersebut tidak ditemukan'
+        error: Not Found
+
+    InternalServerErrorExample:
+      summary: Kesalahan blockchain
+      value:
+        statusCode: 500
+        message: 'Contract 0x5FbDB2315678afecb367f032d93F642f64180aa3 belum terdeploy, Pastikan contract di deploy di jaringan Blockchain'
+        error: Internal Server Error
