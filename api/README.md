@@ -1,98 +1,394 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Tasdiqi Document API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend REST API untuk sistem validasi dokumen digital **Tasdiqi** berbasis blockchain. API ini menjadi jembatan antara aplikasi frontend dan smart contract Tasdiqi di jaringan **Hyperledger Besu**, menangani penandatanganan dokumen (EIP-712), penerbitan ke blockchain, serta manajemen validator.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Proyek ini merupakan bagian dari monorepo SkripsiTest yang terdiri dari:
 
-## Description
+| Folder | Deskripsi |
+|--------|-----------|
+| `api/` | Backend NestJS (repositori ini) |
+| `contract/` | Smart contract Tasdiqi (Foundry) |
+| `app/` | Aplikasi frontend |
+| `QBFT-Networks/` | Konfigurasi jaringan Hyperledger Besu |
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Fitur Utama
 
-```bash
-$ npm install
+- **Penerbitan dokumen ke blockchain** — Menandatangani dokumen dengan standar EIP-712 lalu menerbitkannya ke smart contract.
+- **Pembacaan data dokumen** — Mengambil detail dokumen yang sudah terdaftar di blockchain berdasarkan `documentKey`.
+- **Manajemen validator** — Mengaktifkan atau menonaktifkan alamat validator di smart contract.
+- **Pengecekan otorisasi validator** — Memverifikasi apakah suatu alamat Ethereum terdaftar sebagai validator.
+- **Autentikasi API Key** — Semua endpoint dilindungi middleware `x-api-key`.
+- **Validasi request** — Input divalidasi menggunakan Zod sebelum diproses.
+- **Logging terstruktur** — Log aplikasi menggunakan Winston (console + file error).
+
+---
+
+## Tech Stack
+
+| Teknologi | Versi | Kegunaan |
+|-----------|-------|----------|
+| [NestJS](https://nestjs.com/) | 11.x | Framework backend |
+| [TypeScript](https://www.typescriptlang.org/) | 5.x | Bahasa pemrograman |
+| [ethers.js](https://docs.ethers.org/) | 6.x | Interaksi blockchain |
+| [Zod](https://zod.dev/) | 4.x | Validasi request |
+| [Winston](https://github.com/winstonjs/winston) | — | Logging |
+| Node.js | 20.x | Runtime |
+
+---
+
+## Prasyarat
+
+Sebelum menjalankan API, pastikan lingkungan berikut sudah tersedia:
+
+1. **Node.js** versi 20 atau lebih baru (lihat `.tool-versions` jika menggunakan [asdf](https://asdf-vm.com/))
+2. **npm** (terinstal bersama Node.js)
+3. **Jaringan blockchain Hyperledger Besu** yang sudah berjalan
+4. **Smart contract Tasdiqi** yang sudah di-deploy ke jaringan tersebut
+5. File ABI kontrak di `abi/TasdiqiABI.json`
+
+> Untuk panduan deploy smart contract, lihat [`../contract/README.md`](../contract/README.md).
+
+---
+
+## Struktur Project
+
+```
+api/
+├── abi/
+│   └── TasdiqiABI.json          # ABI smart contract Tasdiqi
+├── docs/
+│   └── swagger.yaml             # Dokumentasi API (OpenAPI 3.0)
+├── logs/
+│   └── error.log                # Log error aplikasi (auto-generated)
+├── src/
+│   ├── main.ts                  # Entry point aplikasi
+│   ├── app.module.ts            # Root module
+│   ├── blockchain/
+│   │   ├── blockchain.module.ts
+│   │   ├── blockchain.service.ts    # Logika interaksi blockchain
+│   │   ├── blockchain.validation.ts # Skema validasi Zod
+│   │   └── constant/
+│   │       └── eip712.constants.ts  # Domain & types EIP-712
+│   ├── common/
+│   │   ├── common.module.ts         # Module global (config, logger, middleware)
+│   │   ├── api-key.middleware.ts    # Middleware autentikasi API key
+│   │   └── validation.service.ts    # Service wrapper Zod
+│   ├── document/
+│   │   ├── document.module.ts
+│   │   └── document.controller.ts   # Handler HTTP endpoint
+│   └── model/
+│       ├── blockchain.model.ts      # Tipe response blockchain
+│       ├── document.model.ts        # Tipe request dokumen
+│       └── web.model.ts             # Wrapper response API
+├── test/
+│   └── app.e2e-spec.ts          # End-to-end test
+├── .env.example                 # Template environment variables
+├── nest-cli.json
+├── package.json
+└── tsconfig.json
 ```
 
-## Compile and run the project
+### Alur Arsitektur
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+Client (Frontend)
+       │
+       ▼  HTTP + x-api-key
+┌──────────────────────┐
+│  DocumentController  │  ← Routing & HTTP handler
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  BlockchainService   │  ← Validasi, signing EIP-712, transaksi
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  Hyperledger Besu    │  ← Smart contract Tasdiqi
+└──────────────────────┘
 ```
 
-## Run tests
+---
+
+## Instalasi
+
+### 1. Clone repositori
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+git clone <url-repositori>
+cd SkripsiTest/api
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 2. Install dependensi
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 3. Siapkan file environment
 
-## Resources
+Salin template environment dan isi nilai yang diperlukan:
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+cp .env.example .env
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 4. Pastikan ABI tersedia
 
-## Support
+File `abi/TasdiqiABI.json` harus ada. File ini biasanya dihasilkan setelah kompilasi smart contract di folder `contract/`:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# Contoh: salin dari output Foundry (sesuaikan path)
+cp ../contract/out/Tasdiqi.sol/Tasdiqi.json abi/TasdiqiABI.json
+```
 
-## Stay in touch
+> API akan gagal start jika file ABI tidak ditemukan.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## Konfigurasi Environment
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Edit file `.env` dengan nilai yang sesuai:
+
+```env
+# Autentikasi API
+API_KEY=your-secret-api-key
+
+# Aplikasi
+APP_PORT=3000
+
+# CORS (untuk frontend)
+CORS_ORIGIN=http://127.0.0.1:8000
+CORS_METHODS=GET,POST,HEAD,PUT,PATCH,DELETE
+CORS_ALLOWED_HEADERS=Content-Type,Accept,x-api-key
+
+# Blockchain
+BLOCKCHAIN_RPC_URL=http://127.0.0.1:8546
+BLOCKCHAIN_CHAIN_ID=1337
+BLOCKCHAIN_CONTRACT_ADDRESS=0x...   # Alamat contract setelah deploy
+BLOCKCHAIN_OWNER_PRIVATE_KEY=...    # Private key owner (untuk set validator)
+```
+
+| Variabel | Wajib | Deskripsi |
+|----------|-------|-----------|
+| `API_KEY` | Ya | Kunci rahasia untuk autentikasi request |
+| `APP_PORT` | Tidak | Port server (default: `3000`) |
+| `CORS_ORIGIN` | Tidak | Origin yang diizinkan untuk CORS |
+| `CORS_METHODS` | Tidak | HTTP methods yang diizinkan |
+| `CORS_ALLOWED_HEADERS` | Tidak | Header yang diizinkan |
+| `BLOCKCHAIN_RPC_URL` | Ya | URL RPC node Besu |
+| `BLOCKCHAIN_CHAIN_ID` | Ya | Chain ID jaringan blockchain |
+| `BLOCKCHAIN_CONTRACT_ADDRESS` | Ya | Alamat smart contract Tasdiqi |
+| `BLOCKCHAIN_OWNER_PRIVATE_KEY` | Ya* | Private key owner (*wajib untuk endpoint `/validator`) |
+
+---
+
+## Menjalankan Aplikasi
+
+### Development (hot reload)
+
+```bash
+npm run start:dev
+```
+
+### Production
+
+```bash
+# Build terlebih dahulu
+npm run build
+
+# Jalankan hasil build
+npm run start:prod
+```
+
+### Mode lainnya
+
+```bash
+npm run start          # Start tanpa watch
+npm run start:debug    # Start dengan debugger
+```
+
+Setelah berjalan, API tersedia di:
+
+```
+http://localhost:3000
+```
+
+---
+
+## Autentikasi
+
+Semua endpoint di bawah `/api/*` memerlukan header autentikasi:
+
+```
+x-api-key: <nilai API_KEY dari .env>
+```
+
+Contoh request dengan `curl`:
+
+```bash
+curl -X GET "http://localhost:3000/api/documents/0xabc123..." \
+  -H "x-api-key: your-secret-api-key"
+```
+
+Jika API key tidak valid atau tidak disertakan, server mengembalikan respons `401 Unauthorized`.
+
+---
+
+## Endpoint API
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| `GET` | `/api/documents/{documentKey}` | Ambil detail dokumen dari blockchain |
+| `POST` | `/api/documents/sign` | Tandatangani dan terbitkan dokumen |
+| `POST` | `/api/documents/validator` | Set status validator (aktif/nonaktif) |
+| `GET` | `/api/documents/validator/check/{address}` | Cek otorisasi validator |
+
+### Format Response
+
+Semua endpoint sukses mengembalikan data dalam format:
+
+```json
+{
+  "data": { ... }
+}
+```
+
+### Contoh Request & Response
+
+**Tandatangani dokumen** — `POST /api/documents/sign`
+
+```bash
+curl -X POST "http://localhost:3000/api/documents/sign" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your-secret-api-key" \
+  -d '{
+    "documentNumber": "DOC-2026-001",
+    "identityHash": "0xabc123...",
+    "fileHash": "0x987654...",
+    "validatorPrivateKey": "a1b2c3d4e5f6..."
+  }'
+```
+
+```json
+{
+  "data": {
+    "transactionHash": "0x3f5c8e...",
+    "blockNumber": 42,
+    "blockHash": "0xabcdef...",
+    "contractAddress": "0x5FbDB2...",
+    "documentKey": "0x1a2b3c...",
+    "signerAddress": "0x742d35...",
+    "gasUsed": "210000",
+    "blockTimestamp": 1752048000,
+    "status": "SUCCESS"
+  }
+}
+```
+
+**Cek validator** — `GET /api/documents/validator/check/{address}`
+
+```bash
+curl -X GET "http://localhost:3000/api/documents/validator/check/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb" \
+  -H "x-api-key: your-secret-api-key"
+```
+
+```json
+{
+  "data": {
+    "address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+    "isAuthorized": true
+  }
+}
+```
+
+> Dokumentasi API lengkap tersedia di [`docs/swagger.yaml`](docs/swagger.yaml). Buka file tersebut di [Swagger Editor](https://editor.swagger.io/) atau jalankan:
+
+```bash
+npx @redocly/cli preview-docs docs/swagger.yaml
+```
+
+---
+
+## Validasi Request
+
+API memvalidasi input menggunakan skema Zod sebelum diproses:
+
+**`POST /api/documents/sign`**
+
+| Field | Tipe | Aturan |
+|-------|------|--------|
+| `documentNumber` | string | Tidak boleh kosong |
+| `identityHash` | string | Tidak boleh kosong |
+| `fileHash` | string | Tidak boleh kosong |
+| `validatorPrivateKey` | string | Tepat 64 karakter hex |
+
+**`POST /api/documents/validator`**
+
+| Field | Tipe | Aturan |
+|-------|------|--------|
+| `validatorAddress` | string | Format alamat Ethereum valid |
+| `status` | boolean | `true` atau `false` |
+
+---
+
+## Testing
+
+```bash
+# Unit test
+npm run test
+
+# Unit test dengan watch mode
+npm run test:watch
+
+# Coverage report
+npm run test:cov
+
+# End-to-end test
+npm run test:e2e
+```
+
+---
+
+## Logging
+
+Aplikasi menggunakan Winston untuk logging:
+
+- **Console** — Semua level log ditampilkan di terminal
+- **File** — Log error disimpan di `logs/error.log`
+
+---
+
+## Troubleshooting
+
+| Masalah | Penyebab | Solusi |
+|---------|----------|--------|
+| `File ABI Tasdiqi tidak ditemukan` | `abi/TasdiqiABI.json` belum ada | Salin ABI dari hasil kompilasi contract |
+| `BLOCKCHAIN_RPC_URL atau BLOCKCHAIN_CHAIN_ID belum didefinisikan` | Variabel `.env` kosong | Isi nilai di file `.env` |
+| `Contract belum terdeploy` | Contract belum ada di jaringan | Deploy contract ke Besu, update `BLOCKCHAIN_CONTRACT_ADDRESS` |
+| `401 Unauthorized` | API key salah atau tidak dikirim | Sertakan header `x-api-key` yang benar |
+| `Validator private key not found` | Field `validatorPrivateKey` kosong | Pastikan private key validator dikirim di body request |
+| Koneksi RPC gagal | Node Besu tidak berjalan | Pastikan jaringan blockchain aktif di `BLOCKCHAIN_RPC_URL` |
+
+---
+
+## Scripts Tersedia
+
+| Perintah | Deskripsi |
+|----------|-----------|
+| `npm run build` | Kompilasi TypeScript ke `dist/` |
+| `npm run start` | Jalankan aplikasi |
+| `npm run start:dev` | Jalankan dengan hot reload |
+| `npm run start:prod` | Jalankan build production |
+| `npm run lint` | Lint & auto-fix kode |
+| `npm run format` | Format kode dengan Prettier |
+| `npm run test` | Jalankan unit test |
+
+---
+
+## Lisensi
+
+Proyek ini bersifat private (`UNLICENSED`).
