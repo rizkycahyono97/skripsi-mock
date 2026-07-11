@@ -33,7 +33,7 @@ return new class extends Migration
             $table->string('identity_hash', 66);
             $table->string('file_hash', 66);
 
-            $table->uuid('verification_code')->unique();
+            // $table->uuid('verification_code')->unique();
 
             $table->foreignId('created_by')
                 ->constrained('users')

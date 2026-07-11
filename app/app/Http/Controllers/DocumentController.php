@@ -67,20 +67,44 @@ class DocumentController extends Controller
                 // dd($request);
                 $uploadedFile = $request->file('file');
 
-                $path = $uploadedFile->store(
+                $originalPath = $uploadedFile->store(
                     'document/original',
                     'public'
                 );
 
-                // dijadikan array
+                // dijadikan array key-value urut
                 $metadata = collect($request->metadata)
                     ->pluck('value', 'key')
                     ->toArray();
                 ksort($metadata);
 
-                // dd($metadata);
+                // $verificationCode = (string) Str::uuid();
+                $documentUuid = (string) Str::uuid();
 
-                // data yang diisi manual ketika upload pdf
+                $tempDocument = new Document([
+                    'document_number' => $request->document_number,
+                    'document_uuid' => $documentUuid,
+                    'document_type' => $request->document_type,
+                    'title' => $request->title,
+                    'issued_date' => $request->issued_date,
+                    'metadata' => $request->metadata,
+                    // 'verification_code' => $verificationCode,
+                ]);
+
+                // generate QR
+                $verifiedFilePath = $this->generateSignedPdfWithQr($tempDocument, $documentUuid, $originalPath);
+                if (! $verifiedFilePath) {
+                    throw new Exception('Gagal memproses generate QR di temp document');
+                }
+
+                $absoluteVerifiedPath = storage_path('app/public/'.$verifiedFilePath);
+
+                $fileHash = '0x'.hash_file(
+                    'sha256',
+                    $absoluteVerifiedPath
+                );
+
+                // data yang diisi manual ketika upload pdf (metadata)
                 $identityData = [
                     'document_number' => $request->document_number,
                     'document_type' => $request->document_type,
@@ -96,22 +120,16 @@ class DocumentController extends Controller
                     )
                 );
 
-                // file asli pdf
-                $fileHash = '0x'.hash_file(
-                    'sha256',
-                    $uploadedFile->getRealPath()
-                );
-
                 $document = Document::create([
                     'document_number' => $request->document_number,
-                    'document_uuid' => Str::uuid(),
+                    'document_uuid' => $documentUuid,
                     'document_type' => $request->document_type,
                     'title' => $request->title,
                     'issued_date' => $request->issued_date,
                     'metadata' => $request->metadata,
                     'identity_hash' => $identityHash,
                     'file_hash' => $fileHash,
-                    'verification_code' => Str::uuid(),
+                    // 'verification_code' => Str::uuid(),
                     'created_by' => Auth::id(),
                     'status' => 'draft',
                 ]);
@@ -120,8 +138,9 @@ class DocumentController extends Controller
 
                 DocumentFile::create([
                     'document_id' => $document->id,
-                    'original_file' => $path,
-                    'file_size' => $uploadedFile->getSize(),
+                    'original_file' => $originalPath,
+                    'verified_file' => $verifiedFilePath,
+                    'file_size' => filesize($absoluteVerifiedPath),
                 ]);
             });
         } catch (\Throwable $e) {
@@ -216,15 +235,7 @@ class DocumentController extends Controller
             $responseData = $response->json();
             $result = $responseData['data'] ?? [];
 
-            $newFilePath = null;
-            if (isset($result['documentKey'])) {
-                $newFilePath = $this->generateSignedPdfWithQr($document, $result['documentKey']);
-                if (! $newFilePath) {
-                    return back()->withErrors(['pdf_error' => 'Gagal memproses generate qr code di pdf']);
-                }
-            }
-
-            DB::transaction(function () use ($document, $result, $newFilePath) {
+            DB::transaction(function () use ($document, $result) {
                 BlockchainTransaction::create([
                     'document_id' => $document->id,
                     'tx_hash' => $result['transactionHash'] ?? null,
@@ -241,18 +252,6 @@ class DocumentController extends Controller
                 ]);
 
                 $document->update(['status' => 'registered']);
-
-                if ($newFilePath) {
-                    if ($document->file) {
-                        $document->file->update([
-                            'verified_file' => $newFilePath,
-                        ]);
-                    } else {
-                        $document->file()->create([
-                            'verified_file' => $newFilePath,
-                        ]);
-                    }
-                }
 
                 AuditLog::create([
                     'user_id' => Auth::id(),
@@ -273,7 +272,7 @@ class DocumentController extends Controller
         }
     }
 
-    private function generateSignedPdfWithQr(Document $document, string $documentKey): ?string
+    private function generateSignedPdfWithQr(Document $document, string $documentKey, string $originalFilePath): ?string
     {
         try {
             $qrDir = storage_path('app/public/document/qr');
@@ -286,7 +285,7 @@ class DocumentController extends Controller
                 mkdir($signedDir, 0755, true);
             }
 
-            $qrCodeName = 'qr_'.$document->id.'_'.time().'.png';
+            $qrCodeName = 'qr_'.($document->document_uuid ?? time()).'_'.time().'.png';
             $qrCodePath = $qrDir.'/'.$qrCodeName;
             $verificationUrl = config('app.url').'/verify/qr/'.$documentKey;
 
@@ -304,7 +303,7 @@ class DocumentController extends Controller
             imagepng($img, $qrCodePath);
             imagedestroy($img);
 
-            $cleanedFilePath = ltrim($document->file->original_file, '/');
+            $cleanedFilePath = ltrim($originalFilePath, '/');
             $originalPdfPath = storage_path('app/public/'.$cleanedFilePath);
 
             if (! file_exists($originalPdfPath) || is_dir($originalPdfPath)) {
