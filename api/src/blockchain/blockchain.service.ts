@@ -100,13 +100,14 @@ export class BlockchainService implements OnModuleInit {
 
       await this.validateContractDeployment(contractAddress);
 
+      // PROSES EIP-712
       const signature: string = await wallet.signTypedData(
         domain,
         types,
         blockchainRequest,
       );
       this.logger.info(
-        `[BlockchainService.signAndIssueDocument] Signature berhasil dibuat: ${signature}`,
+        `[BlockchainService.signAndIssueDocument] Signature berhasil dibuat: ${JSON.stringify(signature)}`,
       );
 
       const tx = (await contract.issueDocument(
