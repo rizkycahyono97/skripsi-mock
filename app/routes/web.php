@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'welcome')->name('home');
 
 // public
+Route::get('/verify/upload', [VerifyController::class, 'verifyUpload'])->name('documents.verify-upload');
+Route::post('/verify/upload', [VerifyController::class, 'verifyUploadStore'])->name('documents.verify-upload-store');
 Route::get('/verify/qr/{documentKey}', [VerifyController::class, 'verifyQr'])->name('documents.verify-qr');
 
 // private
@@ -23,12 +25,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/documents/{document:document_uuid}/sign-blockchain', [DocumentController::class, 'signAndIssue'])->name('documents.sign-blockchain');
 
     // users
-    // Route::get('/users', [UserControler::class, 'index'])->name('users.index');
-    // Route::get('/users/{user}', [UserControler::class, 'show'])->name('users.show');
-    // Route::get('/users/create', [UserControler::class, 'create'])->name('users.create');
-    // Route::post('/users', [UserControler::class, 'store'])->name('users.store');
-    // Route::get('/users/edit/{user}', [UserControler::class, 'edit'])->name('users.edit');
-    // Route::put('/users', [UserControler::class, 'update'])->name('users.update');
     Route::resource('/users', UserControler::class);
 
     // wallet

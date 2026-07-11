@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\BlockchainTransaction;
+use App\Models\Document;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -33,7 +35,7 @@ class VerifyController extends Controller
                 ->get(config('api.blockchain.url').'/documents/'.$documentKey);
 
             if ($blockchainResponse->failed()) {
-                return Inertia::render('verify/show-qr', [
+                return Inertia::render('verify/show', [
                     'status' => 'BLOCKCHAIN_NOT_FOUND',
                     'message' => 'Peringatan: Transaksi tercatat lokal, namun tidak ditemukan di Ledger Blockchain.',
                     'transaction' => $transaction,
@@ -58,7 +60,7 @@ class VerifyController extends Controller
 
             $blockExplorerURL = config('blockchain.BLOCK_EXPLORER');
 
-            return Inertia::render('verify/show-qr', [
+            return Inertia::render('verify/show', [
                 'status' => $verificationStatus,
                 'message' => $message,
                 'transaction' => $transaction,
@@ -77,7 +79,7 @@ class VerifyController extends Controller
         } catch (\Exception $e) {
             Log::error('QR Verification Network Error: '.$e->getMessage());
 
-            return Inertia::render('verify/show-qr', [
+            return Inertia::render('verify/show', [
                 'status' => 'SERVER_ERROR',
                 'message' => 'Gagal terhubung ke jaringan Blockchain untuk validasi. Silakan coba lagi.',
                 'transaction' => $transaction,
@@ -87,58 +89,96 @@ class VerifyController extends Controller
 
     }
 
-    // public function verifyUpload($documentKey)
-    // {
-    //     try {
+    public function verifyUpload()
+    {
+        return Inertia::render('verify/upload-manual');
+    }
 
-    //         $response = Http::timeout(30)
-    //             ->withHeaders([
-    //                 'x-api-key' => config('api.blockchain.key'),
-    //             ])
-    //             ->get(config('api.blockchain.url').'/documents/', $documentKey);
+    /**
+     * verifikasi dengan upload, hash-ulang file upload untuk mencari identity_hash, baru di match dari getDocument
+     */
+    public function verifyUploadStore(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf|max:10240',
+        ]);
 
-    //         if ($response->failed()) {
-    //             return Inertia::render('verify/result', [
-    //                 'status' => 'NOT_FOUND_ON_BLOCKCHAIN',
-    //                 'message' => 'Tasdiqi: Dokumen tidak ditemukan atau belum terdaftar di jaringan Blockchain.',
-    //             ]);
-    //         }
+        try {
 
-    //         $blockchainData = $response->json('data');
+            $uploadedFile = $request->file('file');
 
-    //         $tx = BlockchainTransaction::with('document.file')
-    //             ->where('document_key', $documentKey)
-    //             ->first();
+            $localFileHash = '0x'.hash_file('sha256', $uploadedFile->getRealPath());
 
-    //         if (! $tx || ! $tx->document) {
-    //             return Inertia::render('verify/result', [
-    //                 'status' => 'NOT_FOUND_ON_BLOCKCHAIN',
-    //                 'message' => 'Tasdiqi: Dokumen tidak ditemukan atau belum terdaftar di jaringan Blockchain.',
-    //             ]);
-    //         }
+            $document = Document::with(['blockchainTransaction', 'file'])
+                ->where('file_hash', $localFileHash)
+                ->first();
 
-    //         $document = $tx->document;
+            if (! $document || ! $document->blockchainTransaction) {
+                return Inertia::render('verify/show-upload', [
+                    'status' => 'NOT_FOUND',
+                    'message' => 'Dokumen tidak valid! Berkas sidik jari (hash) tidak terdaftar di sistem kami.',
+                    'computedHash' => $localFileHash,
+                ]);
+            }
 
-    //         // hash ulang metadata
-    //         $metadata = collect($document->metadata)
-    //             ->pluck('value', 'key')
-    //             ->toArray();
-    //         ksort($metadata);
+            $transaction = $document->blockchainTransaction;
+            $documentKey = $transaction->document_key;
 
-    //         $identityData = [
-    //             'document_number' => $document->document_number,
-    //             'document_type' => $document->document_type,
-    //             'issued_date' => $document->issued_date->format('Y-m-d'),
-    //             'metadata' => $metadata,
-    //         ];
+            $blockchainResponse = Http::timeout(15)
+                ->withHeaders([
+                    'x-api-key' => config('api.blockchain.key'),
+                ])
+                ->get(config('api.blockchain.url').'/documents/'.$documentKey);
 
-    //     } catch (\Exception $e) {
-    //         Log::error('QR Verification Error: '.$e->getMessage());
+            if ($blockchainResponse->failed()) {
+                return Inertia::render('verify/show', [
+                    'status' => 'BLOCKCHAIN_NOT_FOUND',
+                    'message' => 'Peringatan: Transaksi tercatat lokal, namun tidak ditemukan di Ledger Blockchain.',
+                    'transaction' => $transaction,
+                    'document' => $document,
+                ]);
+            }
 
-    //         return view('verification.result', [
-    //             'status' => 'FAILED',
-    //             'message' => 'Terjadi kesalahan internal sistem saat memverifikasi QR.',
-    //         ]);
-    //     }
-    // }
+            $blockchainData = $blockchainResponse->json('data');
+
+            $isDocumentNumberMatch = $document->document_number === $blockchainData['documentNumber'];
+            $isIdentityHashMatch = $document->identity_hash === $blockchainData['identityHash'];
+            $isFileHashMatch = $document->file_hash === $blockchainData['fileHash'];
+            $isSignerMatch = $transaction->signer_address === $blockchainData['signer'];
+
+            if ($isDocumentNumberMatch && $isIdentityHashMatch && $isFileHashMatch && $isSignerMatch) {
+                $verificationStatus = 'VALID';
+                $message = 'Dokumen 100% Valid dan Terverifikasi Sah oleh Jaringan Blockchain.';
+            } else {
+                $verificationStatus = 'TAMPERED';
+                $message = 'PERINGATAN: Dokumen Tidak Valid! Terdeteksi ketidakcocokan data antara sistem lokal dan Blockchain.';
+            }
+
+            $blockExplorerURL = config('blockchain.BLOCK_EXPLORER');
+
+            return Inertia::render('verify/show', [
+                'status' => $verificationStatus,
+                'message' => $message,
+                'transaction' => $transaction,
+                'document' => $document,
+                'fileUrl' => $document->file ? $document->file->verified_file : null,
+                'blockchainData' => $blockchainData,
+                'blockExplorer' => $blockExplorerURL,
+                'comparison' => [
+                    'documentNumber' => $isDocumentNumberMatch,
+                    'identityHash' => $isIdentityHashMatch,
+                    'fileHash' => $isFileHashMatch,
+                    'signer' => $isSignerMatch,
+                ],
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Manual Verification Error: '.$e->getMessage());
+
+            return Inertia::render('verify/show', [
+                'status' => 'SERVER_ERROR',
+                'message' => 'Terjadi kesalahan sistem internal saat memproses verifikasi berkas secara manual.',
+            ]);
+        }
+    }
 }

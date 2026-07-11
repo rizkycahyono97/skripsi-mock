@@ -204,7 +204,7 @@ export default function VerifyCardDetail({
             </div>
 
             {/* BUKTI TRANSAKSI */}
-            <div className="space-y-3 rounded-xl border border-zinc-100 bg-zinc-50/30 p-4 dark:border-zinc-800">
+            <div className="space-y-3 rounded-xl border border-zinc-100 bg-background p-4 dark:border-zinc-800">
                 <h4 className="text-xs font-bold tracking-wider text-zinc-400 uppercase">
                     Bukti Resi Transaksi Jaringan
                 </h4>

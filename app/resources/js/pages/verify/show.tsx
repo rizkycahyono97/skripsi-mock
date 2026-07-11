@@ -35,7 +35,7 @@ type VerifyQrProps = {
     blockExplorer: string;
 };
 
-export default function ShowQr({
+export default function Show({
     status,
     message,
     transaction,
@@ -65,4 +65,4 @@ export default function ShowQr({
     );
 }
 
-ShowQr.layout = (page: React.ReactNode) => <>{page}</>;
+Show.layout = (page: React.ReactNode) => <>{page}</>;
